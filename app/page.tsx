@@ -41,15 +41,17 @@ export default function HomePage() {
 
       <ProgressDashboard target={target} words={words} onEditTarget={() => setEditingTarget(true)} />
 
-      <section className="grid items-start gap-6 xl:grid-cols-[.7fr_1.3fr]">
+      <section className="home-learning-workspace">
         <aside className="note-panel home-note-panel">
-          <span className="font-mono text-xs uppercase tracking-[.16em] text-[var(--violet)]">{t("home.note")}</span>
-          <p className="font-display mt-4 text-3xl leading-tight">
-            {dueWords.length
-              ? t("home.due", { count: dueWords.length })
-              : t("home.clear")}
-          </p>
-          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
+          <div>
+            <span className="font-mono text-xs uppercase tracking-[.16em] text-[var(--violet)]">{t("home.note")}</span>
+            <p className="font-display mt-2 text-2xl leading-tight">
+              {dueWords.length
+                ? t("home.due", { count: dueWords.length })
+                : t("home.clear")}
+            </p>
+          </div>
+          <p className="home-note-explainer text-sm leading-6 text-[var(--muted)]">
             {t("home.threePasses")}
           </p>
         </aside>

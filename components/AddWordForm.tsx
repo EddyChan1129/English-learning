@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { NewWord, PartOfSpeech } from "@/types";
 import { SpeechButton } from "./SpeechButton";
-import { OptionalWordFields } from "./WordMetadataFields";
+import { RequiredMark, WordMetadataFields } from "./WordMetadataFields";
 
 export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void> }) {
   const [word, setWord] = useState("");
@@ -23,7 +23,10 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    const cleanSynonyms = synonyms.split(",").map((item) => item.trim()).filter(Boolean);
     const cleanSentences = sentences.map((sentence) => sentence.trim()).filter(Boolean);
+    if (!cleanSynonyms.length) return setError(t("add.synonymError"));
+    if (!partsOfSpeech.length) return setError(t("add.partsOfSpeechError"));
     if (cleanSentences.length < 2) return setError(t("add.minimumError"));
     const includesTargetWord = cleanSentences.some((sentence) =>
       sentence.toLowerCase().includes(word.trim().toLowerCase()),
@@ -37,7 +40,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
       await onAdd({
         word: word.trim(),
         chineseMeaning: chineseMeaning.trim(),
-        synonyms: synonyms.split(",").map((item) => item.trim()).filter(Boolean),
+        synonyms: cleanSynonyms,
         sentences: cleanSentences,
         partsOfSpeech,
         commonPhrases: commonPhrases.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
@@ -67,6 +70,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-bold">
           {t("add.targetWord")}
+          <RequiredMark />
           <input
             className="field mt-2"
             required
@@ -77,6 +81,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
         </label>
         <label className="text-sm font-bold">
           {t("add.chineseMeaning")}
+          <RequiredMark />
           <input
             className="field mt-2"
             required
@@ -86,16 +91,16 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
           />
         </label>
       </div>
-      <div className="desktop-word-details mt-4">
-        <OptionalWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
-      </div>
-      <details className="mobile-word-details">
-        <summary><span>{t("add.moreDetails")}</span><small>{t("add.optional")}</small></summary>
-        <OptionalWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
-      </details>
+      <label className="mt-4 block text-sm font-bold">
+        {t("add.synonyms")}
+        <RequiredMark />
+        <span className="font-normal text-[var(--muted)]"> {t("add.commaSeparated")}</span>
+        <input className="field mt-2" required value={synonyms} onChange={(event) => setSynonyms(event.target.value)} placeholder="chance, discovery" />
+      </label>
+      <WordMetadataFields selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
       <div className="mt-4 space-y-3">
         <div className="sentence-fields-heading flex items-center justify-between">
-          <strong className="text-sm">{t("add.sentences")} <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
+          <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
           <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, ""])}>{t("add.addSentence")}</button>
         </div>
         {sentences.map((sentence, index) => (

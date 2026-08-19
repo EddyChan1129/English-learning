@@ -202,6 +202,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         {error ? <ErrorNotice message={error} onDismiss={() => setError("")} /> : null}
         {children}
       </main>
+      <AppFooter />
       {savingWord ? <SaveOverlay /> : null}
     </AppContext.Provider>
   );
@@ -262,5 +263,15 @@ function SaveOverlay() {
         </div>
       </div>
     </div>
+  );
+}
+
+function AppFooter() {
+  const { t } = useTranslation();
+  return (
+    <footer className="app-footer">
+      <span>Wordwise</span>
+      <p>{t("footer.createdBy")} <strong>Eddy Chan</strong></p>
+    </footer>
   );
 }
