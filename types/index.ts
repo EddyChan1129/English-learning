@@ -1,5 +1,19 @@
 export type Stage = 0 | 1 | 2 | 3;
 export type WordStatus = "learning" | "mastered" | "inactive";
+export const PARTS_OF_SPEECH = [
+  "noun",
+  "verb",
+  "adjective",
+  "adverb",
+  "pronoun",
+  "preposition",
+  "conjunction",
+  "interjection",
+  "determiner",
+  "auxiliaryVerb",
+  "phrasalVerb",
+] as const;
+export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number];
 
 export interface WordDocument {
   id: string;
@@ -7,6 +21,8 @@ export interface WordDocument {
   chineseMeaning: string;
   synonyms: string[];
   sentences: string[];
+  partsOfSpeech: PartOfSpeech[];
+  commonPhrases: string[];
   stage: Stage;
   status: WordStatus;
   nextTestDate: string;
@@ -20,7 +36,7 @@ export interface WordDocument {
 
 export type NewWord = Pick<
   WordDocument,
-  "word" | "chineseMeaning" | "synonyms" | "sentences"
+  "word" | "chineseMeaning" | "synonyms" | "sentences" | "partsOfSpeech" | "commonPhrases"
 >;
 
 export interface UserTarget {

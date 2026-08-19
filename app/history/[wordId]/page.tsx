@@ -48,6 +48,7 @@ export default function WordDetailPage() {
             <SpeechButton text={word.word} />
           </div>
           <p className="mt-3 text-xl text-[var(--muted)]">{word.chineseMeaning}</p>
+          {word.partsOfSpeech.length ? <div className="mt-3 flex flex-wrap gap-2">{word.partsOfSpeech.map((part) => <span key={part} className="part-chip">{t(`partsOfSpeech.${part}`)}</span>)}</div> : null}
         </div>
         <div className="detail-actions">
           <StageBadge stage={word.stage} status={word.status} large />
@@ -102,6 +103,12 @@ export default function WordDetailPage() {
             ) : (
               <p className="mt-4 text-sm text-[var(--muted)]">{t("detail.noSynonyms")}</p>
             )}
+          </section>
+          <section className="detail-panel">
+            <h2>{t("detail.commonPhrases")}</h2>
+            {word.commonPhrases.length ? (
+              <ul className="phrase-list">{word.commonPhrases.map((phrase) => <li key={phrase}><span>{phrase}</span><SpeechButton text={phrase} label="" /></li>)}</ul>
+            ) : <p className="mt-4 text-sm text-[var(--muted)]">{t("detail.noCommonPhrases")}</p>}
           </section>
           <section className="detail-panel">
             <h2>{t("detail.sentences")}</h2>

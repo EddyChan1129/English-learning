@@ -38,6 +38,8 @@ users/{userId}/words/{wordId}
   chineseMeaning: string
   synonyms: string[]
   sentences: string[]
+  partsOfSpeech: ("noun" | "verb" | "adjective" | ...)[]
+  commonPhrases: string[]
   stage: 0 | 1 | 2 | 3
   status: "learning" | "mastered" | "inactive"
   nextTestDate: "YYYY-MM-DD"
@@ -69,7 +71,7 @@ The app subscribes to the user's word collection and filters due words in the br
 - **History** lists every saved word and supports search and status filters.
 - **Word detail** opens from a History card and shows the current stage, dates, synonyms, and example sentences.
 - **Friends** adds people by exact friend code and opens their active vocabulary cards.
-- **Friend wordbook** copies a card into the current user's collection at Stage 1, due again in two days.
+- **Friend wordbook** copies the complete card into the current user's collection at Stage 0 and makes it due today.
 
 Users can edit their own word cards or deactivate them. Inactive words remain in History but are excluded from daily tests and from friends' shared views.
 

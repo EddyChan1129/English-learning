@@ -103,7 +103,15 @@ export function subscribeToWords(
 ) {
   return onSnapshot(collection(requireDb(), "users", uid, "words"), (snapshot) => {
     const words = snapshot.docs
-      .map((item) => ({ id: item.id, ...item.data() }) as WordDocument)
+      .map((item) => {
+        const data = item.data() as WordDocument;
+        return {
+          ...data,
+          id: item.id,
+          partsOfSpeech: data.partsOfSpeech ?? [],
+          commonPhrases: data.commonPhrases ?? [],
+        };
+      })
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     onChange(words);
   }, onError);

@@ -62,6 +62,15 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .card, .detail-panel { border: 1px solid var(--line); border-radius: 1rem; background: rgba(255, 255, 255, .92); box-shadow: 5px 5px 0 rgba(20, 33, 61, .07); }
 .field { width: 100%; border: 1px solid #bbc4d5; border-radius: .55rem; background: white; padding: .8rem .9rem; outline: none; transition: border-color .15s, box-shadow .15s; }
 .field:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(111, 86, 199, .12); }
+.word-metadata-fields { display: grid; gap: 1rem; margin-top: 1rem; border-block: 1px solid var(--line); background: #fbfcff; padding-block: 1rem; }
+.word-metadata-fields legend { font-size: .875rem; font-weight: 800; }
+.word-metadata-fields fieldset > p { margin-top: .2rem; color: var(--muted); font-size: .72rem; }
+.part-of-speech-grid { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .75rem; }
+.part-of-speech-grid label { position: relative; border: 1px solid var(--line); border-radius: 999px; background: white; padding: .42rem .7rem; color: var(--muted); font-size: .72rem; font-weight: 750; transition: border-color .15s, background .15s, color .15s; }
+.part-of-speech-grid label:hover { border-color: var(--violet); }
+.part-of-speech-grid label.selected { border-color: var(--ink); background: var(--highlight); color: var(--ink); box-shadow: 2px 2px 0 var(--ink); }
+.part-of-speech-grid input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.part-of-speech-grid label:has(input:focus-visible) { outline: 2px solid var(--violet); outline-offset: 3px; }
 .btn-primary { border: 1px solid var(--ink); border-radius: .5rem; background: var(--ink); color: white; padding: .75rem 1.1rem; font-weight: 800; box-shadow: 3px 3px 0 var(--highlight); transition: translate .15s, box-shadow .15s; }
 .btn-primary:hover:not(:disabled) { translate: 2px 2px; box-shadow: 1px 1px 0 var(--highlight); }
 .btn-secondary { border: 1px solid var(--line); border-radius: .45rem; background: white; padding: .58rem .8rem; color: var(--ink); font-weight: 800; transition: border-color .15s, background .15s; }
@@ -125,6 +134,11 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .definition-row dt { color: var(--muted); }
 .definition-row dd { font-weight: 750; text-align: right; }
 .synonym-chip { border: 1px solid #b9addf; background: #f4f1ff; padding: .4rem .65rem; color: #4f399f; font-size: .75rem; font-weight: 700; }
+.part-chip { border: 1px solid var(--ink); border-radius: 999px; background: var(--highlight); padding: .28rem .55rem; color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .6rem; font-weight: 800; text-transform: uppercase; }
+.phrase-list { margin-top: .35rem; }
+.phrase-list li { display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--line); padding-block: .85rem; }
+.phrase-list li:last-child { border-bottom: 0; }
+.phrase-list li > span { border-left: 3px solid var(--highlight); padding-left: .7rem; font-family: var(--font-display), serif; font-size: 1.05rem; }
 .sentence-list { margin-top: .3rem; }
 .sentence-list li { display: grid; grid-template-columns: 1.5rem 1fr auto; align-items: center; gap: .7rem; border-bottom: 1px solid var(--line); padding-block: 1rem; }
 .sentence-list li:last-child { border-bottom: 0; }
@@ -160,6 +174,7 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .shared-word-card h2 { font-family: var(--font-display), serif; font-size: 2rem; font-weight: 650; line-height: 1; }
 .shared-word-card h2 + p { margin-top: .4rem; color: var(--muted); font-size: .82rem; }
 .shared-synonyms { margin-top: 1rem; color: var(--violet); font-size: .72rem; font-weight: 750; }
+.shared-pattern { margin-top: .8rem; border-left: 3px solid var(--highlight); padding-left: .65rem; font-family: var(--font-display), serif; font-size: .95rem; }
 .shared-word-card blockquote { flex: 1; margin-block: 1rem; border-left: 2px solid var(--highlight); padding-left: .8rem; font-family: var(--font-display), serif; font-size: 1.05rem; line-height: 1.5; }
 .shared-word-card .btn-secondary { align-self: start; }
 

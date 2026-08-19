@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { NewWord } from "@/types";
+import type { NewWord, PartOfSpeech } from "@/types";
 import { SpeechButton } from "./SpeechButton";
+import { WordMetadataFields } from "./WordMetadataFields";
 
 export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void> }) {
   const [word, setWord] = useState("");
   const [chineseMeaning, setChineseMeaning] = useState("");
   const [synonyms, setSynonyms] = useState("");
+  const [partsOfSpeech, setPartsOfSpeech] = useState<PartOfSpeech[]>([]);
+  const [commonPhrases, setCommonPhrases] = useState("");
   const [sentences, setSentences] = useState(["", ""]);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -36,10 +39,14 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
         chineseMeaning: chineseMeaning.trim(),
         synonyms: synonyms.split(",").map((item) => item.trim()).filter(Boolean),
         sentences: cleanSentences,
+        partsOfSpeech,
+        commonPhrases: commonPhrases.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
       });
       setWord("");
       setChineseMeaning("");
       setSynonyms("");
+      setPartsOfSpeech([]);
+      setCommonPhrases("");
       setSentences(["", ""]);
     } catch {
       setError(t("add.saveError"));
@@ -83,6 +90,12 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
         {t("add.synonyms")} <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span>
         <input className="field mt-2" value={synonyms} onChange={(event) => setSynonyms(event.target.value)} placeholder="chance, discovery" />
       </label>
+      <WordMetadataFields
+        selected={partsOfSpeech}
+        onSelectedChange={setPartsOfSpeech}
+        commonPhrases={commonPhrases}
+        onCommonPhrasesChange={setCommonPhrases}
+      />
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")} <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
