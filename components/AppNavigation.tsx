@@ -12,6 +12,7 @@ const links = [
   { href: "/", labelKey: "nav.home" },
   { href: "/test", labelKey: "nav.test" },
   { href: "/history", labelKey: "nav.history" },
+  { href: "/friends", labelKey: "nav.friends" },
 ];
 
 export function AppNavigation({ user }: { user: User }) {

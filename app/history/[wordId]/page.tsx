@@ -1,20 +1,40 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { SpeechButton } from "@/components/SpeechButton";
 import { StageBadge } from "@/components/StageBadge";
 import { useApp } from "@/components/AppProvider";
+import { EditWordForm } from "@/components/EditWordForm";
+import type { NewWord } from "@/types";
 
 export default function WordDetailPage() {
   const { wordId } = useParams<{ wordId: string }>();
-  const { words, wordsLoaded } = useApp();
+  const { words, wordsLoaded, editWord, setWordEnabled } = useApp();
+  const [editing, setEditing] = useState(false);
+  const [actionError, setActionError] = useState("");
   const { i18n, t } = useTranslation();
   const word = words.find((item) => item.id === wordId);
 
   if (!wordsLoaded) return <p className="py-24 text-center text-sm text-[var(--muted)]">{t("detail.loading")}</p>;
   if (!word) return <WordNotFound />;
+
+  async function saveChanges(nextWord: NewWord) {
+    await editWord(wordId, nextWord);
+    setEditing(false);
+  }
+
+  async function toggleActive() {
+    if (!word) return;
+    setActionError("");
+    try {
+      await setWordEnabled(word, word.status === "inactive");
+    } catch {
+      setActionError(t("detail.statusError"));
+    }
+  }
 
   return (
     <article className="mx-auto max-w-4xl animate-rise">
@@ -29,10 +49,22 @@ export default function WordDetailPage() {
           </div>
           <p className="mt-3 text-xl text-[var(--muted)]">{word.chineseMeaning}</p>
         </div>
-        <StageBadge stage={word.stage} status={word.status} large />
+        <div className="detail-actions">
+          <StageBadge stage={word.stage} status={word.status} large />
+          <div>
+            <button className="btn-secondary" onClick={() => setEditing((current) => !current)}>{editing ? t("common.cancel") : t("common.edit")}</button>
+            <button className={word.status === "inactive" ? "btn-secondary" : "btn-danger"} onClick={toggleActive}>
+              {word.status === "inactive" ? t("detail.reactivate") : t("detail.deactivate")}
+            </button>
+          </div>
+        </div>
       </header>
 
-      <section className="stage-track" aria-label={t("detail.progressLabel", { stage: word.stage })}>
+      {actionError ? <p className="feedback error mt-5" role="alert">{actionError}</p> : null}
+      {word.status === "inactive" ? <p className="inactive-note">{t("detail.inactiveNote")}</p> : null}
+      {editing ? <EditWordForm word={word} onSave={saveChanges} onCancel={() => setEditing(false)} /> : null}
+
+      <section className={`stage-track ${editing ? "mt-6" : ""}`} aria-label={t("detail.progressLabel", { stage: word.stage })}>
         {[1, 2, 3].map((pass) => (
           <div key={pass} className={pass <= word.stage ? "complete" : ""}>
             <span>{pass <= word.stage ? "✓" : pass}</span>
@@ -47,7 +79,7 @@ export default function WordDetailPage() {
           <h2>{t("detail.record")}</h2>
           <dl>
             <DefinitionRow label={t("detail.currentStage")} value={t("detail.stageValue", { stage: word.stage })} />
-            <DefinitionRow label={t("detail.status")} value={word.status === "mastered" ? t("common.mastered") : t("common.learning")} />
+            <DefinitionRow label={t("detail.status")} value={word.status === "mastered" ? t("common.mastered") : word.status === "inactive" ? t("common.inactive") : t("common.learning")} />
             <DefinitionRow label={t("detail.added")} value={formatDate(word.createdAt, i18n.resolvedLanguage)} />
             <DefinitionRow
               label={t("detail.lastTested")}
@@ -55,7 +87,7 @@ export default function WordDetailPage() {
             />
             <DefinitionRow
               label={t("detail.nextTest")}
-              value={word.status === "mastered" ? t("common.complete") : formatDate(word.nextTestDate, i18n.resolvedLanguage)}
+              value={word.status === "mastered" ? t("common.complete") : word.status === "inactive" ? t("detail.paused") : formatDate(word.nextTestDate, i18n.resolvedLanguage)}
             />
           </dl>
         </section>

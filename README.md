@@ -9,6 +9,8 @@ app/page.tsx                 Home: progress, target, and new-word form
 app/test/page.tsx            Randomized daily tests
 app/history/page.tsx         Searchable word-card history
 app/history/[wordId]/        Word stage and full details
+app/friends/page.tsx         Friend code and friend list
+app/friends/[friendId]/      A friend's active word cards
 components/AppProvider.tsx   Shared authentication and Firebase data
 components/AppNavigation.tsx Home, Test, and History navigation
 components/                  Forms, progress, speech, tests, and stage UI
@@ -37,10 +39,25 @@ users/{userId}/words/{wordId}
   synonyms: string[]
   sentences: string[]
   stage: 0 | 1 | 2 | 3
-  status: "learning" | "mastered"
+  status: "learning" | "mastered" | "inactive"
   nextTestDate: "YYYY-MM-DD"
   createdAt: ISO timestamp
   lastTestedAt?: "YYYY-MM-DD"
+  copiedFrom?: { userId: string, wordId: string }
+
+users/{userId}/friends/{friendUserId}
+  uid: string
+  displayName: string
+  addedAt: ISO timestamp
+
+profiles/{userId}
+  uid: string
+  displayName: string
+  friendCode: string
+  createdAt: ISO timestamp
+
+friendCodes/{humanReadableCode}
+  uid: string
 ```
 
 The app subscribes to the user's word collection and filters due words in the browser. This avoids a composite Firestore index and is appropriate for a personal vocabulary collection.
@@ -51,10 +68,16 @@ The app subscribes to the user's word collection and filters due words in the br
 - **Test** contains only the active review flow.
 - **History** lists every saved word and supports search and status filters.
 - **Word detail** opens from a History card and shows the current stage, dates, synonyms, and example sentences.
+- **Friends** adds people by exact friend code and opens their active vocabulary cards.
+- **Friend wordbook** copies a card into the current user's collection at Stage 1, due again in two days.
+
+Users can edit their own word cards or deactivate them. Inactive words remain in History but are excluded from daily tests and from friends' shared views.
+
+Friendship is intentionally a lightweight one-way connection in this version: adding a valid friend code immediately grants read-only access to that user's active vocabulary. Test progress and all writes remain private to each owner.
 
 The language switcher uses `i18next` and `react-i18next`. English and Traditional Chinese are bundled with the app, and the selected language is remembered in the browser.
 
-While a new word is being saved, Wordwise blocks the interface and warns before refresh or tab closure so the Firestore write can finish.
+While a friend or word is being added, or a word is being copied, edited, deactivated, or reactivated, Wordwise blocks the interface and warns before refresh or tab closure so the Firestore write can finish.
 
 ## Setup
 
@@ -67,7 +90,7 @@ While a new word is being saved, Wordwise blocks the interface and warns before 
 
 ## Search and answer-engine metadata
 
-The app includes a web manifest, SVG favicon, generated Open Graph image, canonical URL, robots rules, sitemap, bilingual descriptions, and `WebApplication` JSON-LD. Authenticated History and Test routes are excluded from indexing.
+The app includes a web manifest, SVG favicon, generated Open Graph image, canonical URL, robots rules, sitemap, bilingual descriptions, and `WebApplication` JSON-LD. Authenticated Friends, History, and Test routes are excluded from indexing.
 
 ## Verification
 

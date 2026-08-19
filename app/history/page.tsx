@@ -7,7 +7,7 @@ import { useApp } from "@/components/AppProvider";
 import { StageBadge } from "@/components/StageBadge";
 import type { WordDocument } from "@/types";
 
-type Filter = "all" | "learning" | "mastered";
+type Filter = "all" | "learning" | "mastered" | "inactive";
 
 export default function HistoryPage() {
   const { words, wordsLoaded } = useApp();
@@ -34,7 +34,7 @@ export default function HistoryPage() {
 
       <div className="my-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="filter-tabs" aria-label={t("history.filterLabel")}>
-          {(["all", "learning", "mastered"] as const).map((value) => (
+          {(["all", "learning", "mastered", "inactive"] as const).map((value) => (
             <button key={value} className={filter === value ? "active" : ""} onClick={() => setFilter(value)}>{t(`history.${value}`)}</button>
           ))}
         </div>
@@ -55,7 +55,7 @@ export default function HistoryPage() {
 function WordCard({ word }: { word: WordDocument }) {
   const { t } = useTranslation();
   return (
-    <Link href={`/history/${word.id}`} className="word-card">
+    <Link href={`/history/${word.id}`} className={`word-card ${word.status === "inactive" ? "inactive" : ""}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-display truncate text-3xl font-semibold">{word.word}</h2>
@@ -66,7 +66,7 @@ function WordCard({ word }: { word: WordDocument }) {
       <div className="mt-7 flex items-center justify-between gap-3">
         <StageBadge stage={word.stage} status={word.status} />
         <span className="font-mono text-[11px] uppercase tracking-wider text-[var(--muted)]">
-          {word.status === "mastered" ? t("history.reviewComplete") : t("history.next", { date: word.nextTestDate })}
+          {word.status === "mastered" ? t("history.reviewComplete") : word.status === "inactive" ? t("history.paused") : t("history.next", { date: word.nextTestDate })}
         </span>
       </div>
     </Link>

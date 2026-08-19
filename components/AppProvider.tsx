@@ -7,12 +7,28 @@ import { AppNavigation } from "@/components/AppNavigation";
 import { AuthForm } from "@/components/AuthForm";
 import { auth, isFirebaseConfigured } from "@/lib/firebase";
 import i18n from "@/lib/i18n";
-import { addWord, loadTarget, recordTestResult, saveTarget, subscribeToWords } from "@/lib/firestore";
+import {
+  addFriend,
+  addWord,
+  copyFriendWord,
+  ensureUserProfile,
+  loadTarget,
+  recordTestResult,
+  saveTarget,
+  setWordActive,
+  subscribeToFriends,
+  subscribeToWords,
+  updateWord,
+} from "@/lib/firestore";
 import { toLocalDate } from "@/lib/date";
-import type { NewWord, UserTarget, WordDocument } from "@/types";
+import type { FriendDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 type AppContextValue = {
   user: User;
+  profile: UserProfile | null;
+  profileLoaded: boolean;
+  friends: FriendDocument[];
+  friendsLoaded: boolean;
   target: UserTarget | null;
   targetLoaded: boolean;
   words: WordDocument[];
@@ -21,6 +37,10 @@ type AppContextValue = {
   dueWords: WordDocument[];
   saveLearningTarget: (target: UserTarget) => Promise<void>;
   createWord: (word: NewWord) => Promise<void>;
+  addFriendByCode: (friendCode: string) => Promise<FriendDocument>;
+  copyFromFriend: (friendUid: string, word: WordDocument) => Promise<void>;
+  editWord: (wordId: string, word: NewWord) => Promise<void>;
+  setWordEnabled: (word: WordDocument, active: boolean) => Promise<void>;
   saveTestResult: (word: WordDocument, passed: boolean) => Promise<void>;
 };
 
@@ -29,6 +49,10 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(!auth);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [friends, setFriends] = useState<FriendDocument[]>([]);
+  const [friendsLoaded, setFriendsLoaded] = useState(false);
   const [target, setTarget] = useState<UserTarget | null>(null);
   const [targetLoaded, setTargetLoaded] = useState(false);
   const [words, setWords] = useState<WordDocument[]>([]);
@@ -52,6 +76,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setUser(nextUser);
       setAuthReady(true);
       if (!nextUser) {
+        setProfile(null);
+        setProfileLoaded(false);
+        setFriends([]);
+        setFriendsLoaded(false);
         setTarget(null);
         setTargetLoaded(false);
         setWords([]);
@@ -62,11 +90,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!user) return;
+    ensureUserProfile(user.uid, user.email)
+      .then(setProfile)
+      .catch(() => setError(getErrorMessage()))
+      .finally(() => setProfileLoaded(true));
     loadTarget(user.uid)
       .then(setTarget)
       .catch(() => setError(getErrorMessage()))
       .finally(() => setTargetLoaded(true));
-    return subscribeToWords(
+    const unsubscribeWords = subscribeToWords(
       user.uid,
       (nextWords) => {
         setWords(nextWords);
@@ -74,6 +106,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       },
       () => setError(getErrorMessage()),
     );
+    const unsubscribeFriends = subscribeToFriends(
+      user.uid,
+      (nextFriends) => {
+        setFriends(nextFriends);
+        setFriendsLoaded(true);
+      },
+      () => setError(getErrorMessage()),
+    );
+    return () => {
+      unsubscribeWords();
+      unsubscribeFriends();
+    };
   }, [user]);
 
   const dueWords = useMemo(
@@ -89,9 +133,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   async function createWord(word: NewWord) {
     if (!user) return;
+    await protectWrite(() => addWord(user.uid, word));
+  }
+
+  async function addFriendByCode(friendCode: string) {
+    if (!user) throw new Error("not-signed-in");
+    return protectWrite(() => addFriend(user.uid, friendCode));
+  }
+
+  async function copyFromFriend(friendUid: string, word: WordDocument) {
+    if (!user) return;
+    const alreadyAdded = words.some((item) => item.word.trim().toLowerCase() === word.word.trim().toLowerCase());
+    if (alreadyAdded) throw new Error("word-already-added");
+    await protectWrite(() => copyFriendWord(user.uid, friendUid, word));
+  }
+
+  async function editWord(wordId: string, word: NewWord) {
+    if (!user) return;
+    await protectWrite(() => updateWord(user.uid, wordId, word));
+  }
+
+  async function setWordEnabled(word: WordDocument, active: boolean) {
+    if (!user) return;
+    await protectWrite(() => setWordActive(user.uid, word, active));
+  }
+
+  async function protectWrite<Result>(action: () => Promise<Result>) {
     setSavingWord(true);
     try {
-      await addWord(user.uid, word);
+      return await action();
     } finally {
       setSavingWord(false);
     }
@@ -109,6 +179,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   return (
     <AppContext.Provider value={{
       user,
+      profile,
+      profileLoaded,
+      friends,
+      friendsLoaded,
       target,
       targetLoaded,
       words,
@@ -117,6 +191,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       dueWords,
       saveLearningTarget,
       createWord,
+      addFriendByCode,
+      copyFromFriend,
+      editWord,
+      setWordEnabled,
       saveTestResult,
     }}>
       <AppNavigation user={user} />
