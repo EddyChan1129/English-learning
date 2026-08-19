@@ -29,13 +29,14 @@ export async function loadTarget(uid: string): Promise<UserTarget | null> {
 export function subscribeToWords(
   uid: string,
   onChange: (words: WordDocument[]) => void,
+  onError?: (error: Error) => void,
 ) {
   return onSnapshot(collection(requireDb(), "users", uid, "words"), (snapshot) => {
     const words = snapshot.docs
       .map((item) => ({ id: item.id, ...item.data() }) as WordDocument)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     onChange(words);
-  });
+  }, onError);
 }
 
 export async function addWord(uid: string, input: NewWord) {

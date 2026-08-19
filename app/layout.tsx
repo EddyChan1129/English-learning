@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { DM_Sans, Fraunces } from "next/font/google";
+import { Manrope, Newsreader } from "next/font/google";
+import { AppProvider } from "@/components/AppProvider";
 import "./globals.css";
 
-const sans = DM_Sans({ subsets: ["latin"], variable: "--font-sans" });
-const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
+const sans = Manrope({ subsets: ["latin"], variable: "--font-sans" });
+const display = Newsreader({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
   title: "Wordwise — Vocabulary that sticks",
@@ -13,7 +14,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${sans.variable} ${display.variable}`}>{children}</body>
+      <body className={`${sans.variable} ${display.variable}`}>
+        <AppProvider>{children}</AppProvider>
+      </body>
     </html>
   );
 }

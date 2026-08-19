@@ -5,8 +5,13 @@ A focused vocabulary-learning app built with Next.js App Router, TypeScript, Tai
 ## Architecture
 
 ```text
-app/                         Next.js pages and global styles
-components/                  Auth, dashboard, word entry, tests, and word list
+app/page.tsx                 Home: progress, target, and new-word form
+app/test/page.tsx            Randomized daily tests
+app/history/page.tsx         Searchable word-card history
+app/history/[wordId]/        Word stage and full details
+components/AppProvider.tsx   Shared authentication and Firebase data
+components/AppNavigation.tsx Home, Test, and History navigation
+components/                  Forms, progress, speech, tests, and stage UI
 lib/date.ts                  Local calendar-date helpers
 lib/spaced-repetition.ts     Pure three-pass scheduling algorithm
 lib/test-helpers.ts          Answer normalization and gap generation
@@ -37,6 +42,13 @@ users/{userId}/words/{wordId}
 ```
 
 The app subscribes to the user's word collection and filters due words in the browser. This avoids a composite Firestore index and is appropriate for a personal vocabulary collection.
+
+## Pages
+
+- **Home** shows target and time progress, today's due count, and the add-word form.
+- **Test** contains only the active review flow.
+- **History** lists every saved word and supports search and status filters.
+- **Word detail** opens from a History card and shows the current stage, dates, synonyms, and example sentences.
 
 ## Setup
 

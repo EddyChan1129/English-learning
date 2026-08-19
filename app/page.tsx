@@ -1,106 +1,62 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
-import { AuthForm } from "@/components/AuthForm";
+import { useState } from "react";
 import { AddWordForm } from "@/components/AddWordForm";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
 import { TargetForm } from "@/components/TargetForm";
-import { TestSession } from "@/components/TestSession";
-import { WordList } from "@/components/WordList";
-import { addWord, loadTarget, recordTestResult, saveTarget, subscribeToWords } from "@/lib/firestore";
-import { auth, isFirebaseConfigured } from "@/lib/firebase";
-import { toLocalDate } from "@/lib/date";
-import type { NewWord, UserTarget, WordDocument } from "@/types";
+import { useApp } from "@/components/AppProvider";
 
-export default function Home() {
-  const [user, setUser] = useState<User | null>(null);
-  const [authReady, setAuthReady] = useState(!auth);
-  const [target, setTarget] = useState<UserTarget | null>(null);
-  const [targetLoaded, setTargetLoaded] = useState(false);
+export default function HomePage() {
+  const { target, targetLoaded, words, saveLearningTarget, createWord, dueWords } = useApp();
   const [editingTarget, setEditingTarget] = useState(false);
-  const [words, setWords] = useState<WordDocument[]>([]);
-  const [error, setError] = useState("");
 
-  function showError(cause: unknown) {
-    setError(cause instanceof Error ? cause.message : "Something went wrong.");
+  if (!targetLoaded) return <PageLoading />;
+
+  if (!target || editingTarget) {
+    return (
+      <div className="mx-auto max-w-2xl pt-8">
+        <TargetForm
+          initial={target}
+          onSave={async (nextTarget) => {
+            await saveLearningTarget(nextTarget);
+            setEditingTarget(false);
+          }}
+        />
+      </div>
+    );
   }
-
-  useEffect(() => {
-    if (!auth) return;
-    return onAuthStateChanged(auth, (nextUser) => {
-      setUser(nextUser);
-      setAuthReady(true);
-      if (!nextUser) {
-        setWords([]);
-        setTarget(null);
-        setTargetLoaded(false);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    loadTarget(user.uid).then(setTarget).catch(showError).finally(() => setTargetLoaded(true));
-    return subscribeToWords(user.uid, setWords);
-  }, [user]);
-
-  const dueWords = useMemo(() => words.filter((word) => word.status === "learning" && word.nextTestDate <= toLocalDate()), [words]);
-
-  async function handleTarget(nextTarget: UserTarget) {
-    if (!user) return;
-    await saveTarget(user.uid, nextTarget);
-    setTarget(nextTarget);
-    setEditingTarget(false);
-  }
-
-  async function handleAdd(input: NewWord) {
-    if (!user) return;
-    await addWord(user.uid, input);
-  }
-
-  async function handleResult(word: WordDocument, passed: boolean) {
-    if (!user) return;
-    await recordTestResult(user.uid, word.id, passed);
-  }
-
-  if (!isFirebaseConfigured) return <ConfigurationHelp />;
-  if (!authReady) return <main className="grid min-h-screen place-items-center"><p className="font-display text-2xl">Opening your wordbook…</p></main>;
-  if (!user) return <AuthForm />;
 
   return (
-    <main className="mx-auto min-h-screen max-w-7xl px-4 pb-16 sm:px-7">
-      <header className="flex items-center justify-between py-6 sm:py-8">
-        <div className="flex items-center gap-3"><div className="grid size-10 place-items-center rounded-2xl bg-[var(--ink)] font-display text-lg text-white">W</div><span className="font-display text-2xl font-semibold">Wordwise</span></div>
-        <div className="flex items-center gap-3"><span className="hidden max-w-52 truncate text-sm text-black/45 sm:block">{user.email}</span>{target && <button className="btn-secondary text-sm" onClick={() => setEditingTarget((value) => !value)}>Edit target</button>}<button className="text-sm font-bold text-black/50" onClick={() => auth && signOut(auth)}>Sign out</button></div>
+    <div className="space-y-7 animate-rise">
+      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5">
+        <div>
+          <p className="eyebrow">Your learning desk</p>
+          <h1 className="page-title">Keep the words you learn.</h1>
+          <p className="mt-2 text-[var(--muted)]">Review what is due, then add something worth remembering.</p>
+        </div>
+        <button className="text-button" onClick={() => setEditingTarget(true)}>Edit learning target</button>
       </header>
 
-      {error && <div className="mb-5 flex justify-between rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert"><span>{error}</span><button onClick={() => setError("")} aria-label="Dismiss">×</button></div>}
+      <ProgressDashboard target={target} words={words} />
 
-      {!targetLoaded ? <p className="py-20 text-center">Loading your progress…</p> : !target || editingTarget ? <div className="mx-auto mt-12 max-w-2xl"><TargetForm initial={target} onSave={handleTarget} /></div> : <div className="space-y-6 animate-rise">
-        <ProgressDashboard target={target} words={words} />
-        <div className="grid items-start gap-6 xl:grid-cols-[1fr_.82fr]">
-          <div className="space-y-6"><TestSession key={dueWords[0]?.id ?? "empty"} words={dueWords} onResult={handleResult} /><WordList words={words} /></div>
-          <AddWordForm onAdd={handleAdd} />
-        </div>
-      </div>}
-    </main>
+      <section className="grid items-start gap-6 xl:grid-cols-[.7fr_1.3fr]">
+        <aside className="note-panel">
+          <span className="font-mono text-xs uppercase tracking-[.16em] text-[var(--violet)]">Today’s note</span>
+          <p className="font-display mt-4 text-3xl leading-tight">
+            {dueWords.length
+              ? `${dueWords.length} ${dueWords.length === 1 ? "word is" : "words are"} ready for another pass.`
+              : "Your review list is clear."}
+          </p>
+          <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
+            Each word needs three successful tests before it moves into your mastered collection.
+          </p>
+        </aside>
+        <AddWordForm onAdd={createWord} />
+      </section>
+    </div>
   );
 }
 
-function ConfigurationHelp() {
-  return (
-    <main className="grid min-h-screen place-items-center px-5 py-12">
-      <section className="card max-w-2xl rounded-[2rem] p-8 sm:p-10">
-        <p className="text-xs font-bold uppercase tracking-[.18em] text-[var(--orange)]">One-time setup</p>
-        <h1 className="font-display mt-2 text-4xl font-semibold">Connect your Firebase project</h1>
-        <ol className="mt-6 list-decimal space-y-3 pl-5 text-sm leading-6 text-black/65">
-          <li>Create a Firebase web app and enable Email/Password in Authentication.</li>
-          <li>Create a Firestore database and deploy the included <code>firestore.rules</code>.</li>
-          <li>Copy <code>.env.example</code> to <code>.env.local</code>, then fill in the six public Firebase values.</li>
-          <li>Restart <code>npm run dev</code>.</li>
-        </ol>
-      </section>
-    </main>
-  );
+function PageLoading() {
+  return <p className="py-24 text-center text-sm text-[var(--muted)]">Opening your learning desk…</p>;
 }
