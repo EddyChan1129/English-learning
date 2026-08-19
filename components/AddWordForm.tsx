@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { NewWord, PartOfSpeech } from "@/types";
 import { SpeechButton } from "./SpeechButton";
-import { WordMetadataFields } from "./WordMetadataFields";
+import { OptionalWordFields } from "./WordMetadataFields";
 
 export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void> }) {
   const [word, setWord] = useState("");
@@ -56,7 +56,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
   }
 
   return (
-    <form onSubmit={submit} className="card p-6 sm:p-8" aria-busy={busy}>
+    <form onSubmit={submit} className="card word-form p-6 sm:p-8" aria-busy={busy}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="eyebrow">{t("add.eyebrow")}</p>
@@ -86,18 +86,15 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
           />
         </label>
       </div>
-      <label className="mt-4 block text-sm font-bold">
-        {t("add.synonyms")} <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span>
-        <input className="field mt-2" value={synonyms} onChange={(event) => setSynonyms(event.target.value)} placeholder="chance, discovery" />
-      </label>
-      <WordMetadataFields
-        selected={partsOfSpeech}
-        onSelectedChange={setPartsOfSpeech}
-        commonPhrases={commonPhrases}
-        onCommonPhrasesChange={setCommonPhrases}
-      />
+      <div className="desktop-word-details mt-4">
+        <OptionalWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
+      </div>
+      <details className="mobile-word-details">
+        <summary><span>{t("add.moreDetails")}</span><small>{t("add.optional")}</small></summary>
+        <OptionalWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
+      </details>
       <div className="mt-4 space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="sentence-fields-heading flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")} <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
           <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, ""])}>{t("add.addSentence")}</button>
         </div>

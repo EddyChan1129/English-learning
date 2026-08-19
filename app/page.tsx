@@ -30,19 +30,19 @@ export default function HomePage() {
 
   return (
     <div className="space-y-7 animate-rise">
-      <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5">
+      <header className="home-heading flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5">
         <div>
           <p className="eyebrow">{t("home.eyebrow")}</p>
           <h1 className="page-title">{t("home.title")}</h1>
           <p className="mt-2 text-[var(--muted)]">{t("home.description")}</p>
         </div>
-        <button className="text-button" onClick={() => setEditingTarget(true)}>{t("home.editTarget")}</button>
+        <button className="desktop-edit-target text-button" onClick={() => setEditingTarget(true)}>{t("home.editTarget")}</button>
       </header>
 
-      <ProgressDashboard target={target} words={words} />
+      <ProgressDashboard target={target} words={words} onEditTarget={() => setEditingTarget(true)} />
 
       <section className="grid items-start gap-6 xl:grid-cols-[.7fr_1.3fr]">
-        <aside className="note-panel">
+        <aside className="note-panel home-note-panel">
           <span className="font-mono text-xs uppercase tracking-[.16em] text-[var(--violet)]">{t("home.note")}</span>
           <p className="font-display mt-4 text-3xl leading-tight">
             {dueWords.length

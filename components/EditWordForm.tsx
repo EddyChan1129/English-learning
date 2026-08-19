@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { NewWord, PartOfSpeech, WordDocument } from "@/types";
 import { SpeechButton } from "./SpeechButton";
-import { WordMetadataFields } from "./WordMetadataFields";
+import { OptionalWordFields } from "./WordMetadataFields";
 
 export function EditWordForm({ word: initialWord, onSave, onCancel }: {
   word: WordDocument;
@@ -61,16 +61,13 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
         <label className="text-sm font-bold">{t("add.targetWord")}<input className="field mt-2" required value={word} onChange={(event) => setWord(event.target.value)} /></label>
         <label className="text-sm font-bold">{t("add.chineseMeaning")}<input className="field mt-2" required value={chineseMeaning} onChange={(event) => setChineseMeaning(event.target.value)} /></label>
       </div>
-      <label className="mt-4 block text-sm font-bold">
-        {t("add.synonyms")} <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span>
-        <input className="field mt-2" value={synonyms} onChange={(event) => setSynonyms(event.target.value)} />
-      </label>
-      <WordMetadataFields
-        selected={partsOfSpeech}
-        onSelectedChange={setPartsOfSpeech}
-        commonPhrases={commonPhrases}
-        onCommonPhrasesChange={setCommonPhrases}
-      />
+      <div className="desktop-word-details mt-4">
+        <OptionalWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
+      </div>
+      <details className="mobile-word-details">
+        <summary><span>{t("add.moreDetails")}</span><small>{t("add.optional")}</small></summary>
+        <OptionalWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
+      </details>
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")} <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
