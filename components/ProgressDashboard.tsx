@@ -1,8 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslation } from "react-i18next";
 import { daysElapsed, toLocalDate } from "@/lib/date";
 import type { UserTarget, WordDocument } from "@/types";
 
 export function ProgressDashboard({ target, words }: { target: UserTarget; words: WordDocument[] }) {
+  const { t } = useTranslation();
   const today = toLocalDate();
   const mastered = words.filter((word) => word.status === "mastered").length;
   const due = words.filter((word) => word.status === "learning" && word.nextTestDate <= today).length;
@@ -13,26 +17,26 @@ export function ProgressDashboard({ target, words }: { target: UserTarget; words
   return (
     <section className="progress-layout">
       <div className="progress-sheet">
-        <p className="eyebrow">Learning target</p>
+        <p className="eyebrow">{t("progress.target")}</p>
         <p className="progress-number mt-5">
           {Math.max(0, target.targetWords - mastered).toLocaleString()}
-          <small> / {target.targetWords.toLocaleString()} words remaining</small>
+          <small>{t("progress.remaining", { total: target.targetWords.toLocaleString() })}</small>
         </p>
         <div className="progress-rows">
           <ProgressRow
-            label="Words mastered"
+            label={t("progress.wordsMastered")}
             value={`${mastered} · ${Math.round(wordProgress)}%`}
             progress={wordProgress}
           />
-          <ProgressRow label="Time elapsed" value={`Day ${day} / ${target.targetDays}`} progress={timeProgress} />
+          <ProgressRow label={t("progress.timeElapsed")} value={t("progress.day", { day, total: target.targetDays })} progress={timeProgress} />
         </div>
       </div>
 
       <Link href="/test" className="due-sheet no-underline">
-        <p className="font-mono text-xs font-bold uppercase tracking-[.16em] text-white/70">Due today</p>
+        <p className="font-mono text-xs font-bold uppercase tracking-[.16em] text-white/70">{t("progress.dueToday")}</p>
         <div>
           <strong className="font-display block text-7xl font-semibold leading-none">{due}</strong>
-          <p className="mt-2 text-sm text-white/75">{due ? "Start a short review →" : "Everything is up to date."}</p>
+          <p className="mt-2 text-sm text-white/75">{due ? t("progress.start") : t("progress.upToDate")}</p>
         </div>
       </Link>
     </section>

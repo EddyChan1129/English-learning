@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toLocalDate } from "@/lib/date";
 import type { UserTarget } from "@/types";
 
@@ -13,6 +14,7 @@ export function TargetForm({ initial, onSave }: TargetFormProps) {
   const [targetWords, setTargetWords] = useState(initial?.targetWords ?? 1000);
   const [targetDays, setTargetDays] = useState(initial?.targetDays ?? 100);
   const [busy, setBusy] = useState(false);
+  const { t } = useTranslation();
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -26,12 +28,12 @@ export function TargetForm({ initial, onSave }: TargetFormProps) {
 
   return (
     <form onSubmit={submit} className="card p-6 sm:p-8">
-      <p className="eyebrow">Your destination</p>
-      <h2 className="font-display mt-2 text-3xl font-semibold">Set a learning target</h2>
-      <p className="mt-2 text-sm text-[var(--muted)]">Choose something ambitious enough to matter and realistic enough to finish.</p>
+      <p className="eyebrow">{t("target.eyebrow")}</p>
+      <h2 className="font-display mt-2 text-3xl font-semibold">{t("target.title")}</h2>
+      <p className="mt-2 text-sm text-[var(--muted)]">{t("target.description")}</p>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-bold">
-          Total words
+          {t("target.totalWords")}
           <input
             className="field mt-2"
             type="number"
@@ -43,7 +45,7 @@ export function TargetForm({ initial, onSave }: TargetFormProps) {
           />
         </label>
         <label className="text-sm font-bold">
-          Total days
+          {t("target.totalDays")}
           <input
             className="field mt-2"
             type="number"
@@ -55,7 +57,7 @@ export function TargetForm({ initial, onSave }: TargetFormProps) {
           />
         </label>
       </div>
-      <button className="btn-primary mt-6" disabled={busy}>{busy ? "Saving…" : initial ? "Update target" : "Start learning"}</button>
+      <button className="btn-primary mt-6" disabled={busy}>{busy ? t("common.saving") : initial ? t("target.update") : t("target.start")}</button>
     </form>
   );
 }

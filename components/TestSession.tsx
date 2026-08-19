@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   isSynonymAnswerCorrect,
   isWordAnswerCorrect,
@@ -31,10 +32,10 @@ type TestSessionProps = {
   onResult: (word: WordDocument, passed: boolean) => Promise<void>;
 };
 
-const MODE_LABELS: Record<TestMode, string> = {
-  pronunciation: "Pronunciation",
-  synonym: "Synonym",
-  "gap-fill": "Gap fill",
+const MODE_LABEL_KEYS: Record<TestMode, string> = {
+  pronunciation: "test.pronunciation",
+  synonym: "test.synonym",
+  "gap-fill": "test.gapFill",
 };
 
 export function TestSession({ words, onResult }: TestSessionProps) {
@@ -46,6 +47,7 @@ export function TestSession({ words, onResult }: TestSessionProps) {
   const [speechUnavailable, setSpeechUnavailable] = useState(false);
   const [busy, setBusy] = useState(false);
   const recognitionRef = useRef<Recognition | null>(null);
+  const { t } = useTranslation();
 
   const gapSentence = useMemo(() => {
     if (!current) return "";
@@ -102,8 +104,8 @@ export function TestSession({ words, onResult }: TestSessionProps) {
         <div className="mx-auto grid size-16 place-items-center border border-[var(--green)] bg-[var(--mint)] text-3xl text-[var(--green)]">
           ✓
         </div>
-        <h2 className="font-display mt-4 text-3xl font-semibold">Reviews complete</h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">Nothing else is due today. Nicely done.</p>
+        <h2 className="font-display mt-4 text-3xl font-semibold">{t("test.completeTitle")}</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">{t("test.completeDescription")}</p>
       </section>
     );
   }
@@ -112,10 +114,10 @@ export function TestSession({ words, onResult }: TestSessionProps) {
     <section className="card overflow-hidden">
       <div className="flex items-center justify-between border-b border-[var(--line)] bg-[#f1effb] px-6 py-4">
         <div>
-          <span className="eyebrow">Today’s review</span>
-          <span className="ml-3 text-xs text-[var(--muted)]">{words.length} remaining</span>
+          <span className="eyebrow">{t("test.review")}</span>
+          <span className="ml-3 text-xs text-[var(--muted)]">{t("test.remaining", { count: words.length })}</span>
         </div>
-        {mode ? <span className="stage-badge">{MODE_LABELS[mode]}</span> : null}
+        {mode ? <span className="stage-badge">{t(MODE_LABEL_KEYS[mode])}</span> : null}
       </div>
       <div className="p-6 sm:p-9">
         {mode === "pronunciation" ? (
@@ -161,6 +163,7 @@ type AnswerFormProps = {
 };
 
 function AnswerForm({ answer, setAnswer, onCheck, disabled }: AnswerFormProps) {
+  const { t } = useTranslation();
   return (
     <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(event) => {
       event.preventDefault();
@@ -172,10 +175,10 @@ function AnswerForm({ answer, setAnswer, onCheck, disabled }: AnswerFormProps) {
         onChange={(event) => setAnswer(event.target.value)}
         disabled={disabled}
         autoFocus
-        placeholder="Type your answer…"
+        placeholder={t("test.answerPlaceholder")}
         required
       />
-      <button className="btn-primary" disabled={disabled}>Check answer</button>
+      <button className="btn-primary" disabled={disabled}>{t("test.check")}</button>
     </form>
   );
 }
@@ -193,30 +196,32 @@ function PronunciationPrompt({ word, answer, listening, speechUnavailable, finis
   speechUnavailable: boolean;
   onListen: () => void;
 }) {
+  const { t } = useTranslation();
   return <>
-    <p className="text-sm font-bold text-[var(--muted)]">Say this word aloud</p>
+    <p className="text-sm font-bold text-[var(--muted)]">{t("test.say")}</p>
     <div className="mt-3 flex items-center gap-3">
       <h2 className="font-display text-5xl font-semibold">{word.word}</h2>
-      <SpeechButton text={word.word} label="Hear it" />
+      <SpeechButton text={word.word} label={t("test.hear")} />
     </div>
     <p className="mt-2 text-lg">{word.chineseMeaning}</p>
     {speechUnavailable ? (
       <div className="mt-7">
-        <p className="mb-2 text-sm text-[var(--muted)]">Voice recognition is unavailable in this browser. Type what you said:</p>
+        <p className="mb-2 text-sm text-[var(--muted)]">{t("test.unavailable")}</p>
         <AnswerForm answer={answer} setAnswer={onAnswer} onCheck={onCheck} disabled={finished} />
       </div>
     ) : (
       <button type="button" onClick={onListen} disabled={listening || finished} className="btn-primary mt-8">
-        {listening ? "Listening…" : "● Start speaking"}
+        {listening ? t("test.listening") : t("test.startSpeaking")}
       </button>
     )}
-    {answer ? <p className="mt-4 text-sm">We heard: <strong>“{answer}”</strong></p> : null}
+    {answer ? <p className="mt-4 text-sm"><strong>{t("test.heard", { answer })}</strong></p> : null}
   </>;
 }
 
 function SynonymPrompt({ word, answer, finished, onAnswer, onCheck }: PromptProps) {
+  const { t } = useTranslation();
   return <>
-    <p className="text-sm font-bold text-[var(--muted)]">Type one English synonym for</p>
+    <p className="text-sm font-bold text-[var(--muted)]">{t("test.synonymPrompt")}</p>
     <h2 className="font-display mt-3 text-4xl font-semibold">{word.word}</h2>
     <p className="mt-1 text-lg">{word.chineseMeaning}</p>
     <div className="mt-7"><AnswerForm answer={answer} setAnswer={onAnswer} onCheck={onCheck} disabled={finished} /></div>
@@ -224,10 +229,11 @@ function SynonymPrompt({ word, answer, finished, onAnswer, onCheck }: PromptProp
 }
 
 function GapFillPrompt({ word, sentence, answer, finished, onAnswer, onCheck }: PromptProps & { sentence: string }) {
+  const { t } = useTranslation();
   return <>
-    <p className="text-sm font-bold text-[var(--muted)]">Complete the sentence</p>
+    <p className="text-sm font-bold text-[var(--muted)]">{t("test.gapPrompt")}</p>
     <blockquote className="font-display mt-4 text-2xl font-medium leading-relaxed sm:text-3xl">“{sentence}”</blockquote>
-    <p className="mt-3 text-sm text-[var(--muted)]">Hint: {word.chineseMeaning}</p>
+    <p className="mt-3 text-sm text-[var(--muted)]">{t("test.hint", { meaning: word.chineseMeaning })}</p>
     <div className="mt-7"><AnswerForm answer={answer} setAnswer={onAnswer} onCheck={onCheck} disabled={finished} /></div>
   </>;
 }
@@ -239,13 +245,14 @@ function TestFeedback({ word, mode, passed, busy, onContinue }: {
   busy: boolean;
   onContinue: () => void;
 }) {
+  const { t } = useTranslation();
   const colors = passed
     ? "border-[#8ed5b9] bg-[#effaf5] text-[var(--green)]"
     : "border-red-200 bg-red-50 text-red-700";
 
   return <div className={`mt-6 border p-4 ${colors}`} role="status">
-    <strong>{passed ? "Correct — nice work." : `Not quite. The answer is “${word.word}”.`}</strong>
-    {!passed && mode === "synonym" ? <p className="mt-1 text-sm">Accepted: {word.synonyms.join(", ")}</p> : null}
-    <button className="btn-primary mt-3" onClick={onContinue} disabled={busy}>{busy ? "Saving…" : "Continue →"}</button>
+    <strong>{passed ? t("test.correct") : t("test.incorrect", { word: word.word })}</strong>
+    {!passed && mode === "synonym" ? <p className="mt-1 text-sm">{t("test.accepted", { synonyms: word.synonyms.join(", ") })}</p> : null}
+    <button className="btn-primary mt-3" onClick={onContinue} disabled={busy}>{busy ? t("common.saving") : t("test.continue")}</button>
   </div>;
 }

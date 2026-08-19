@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export function AuthForm() {
   const [isNew, setIsNew] = useState(false);
@@ -10,6 +13,7 @@ export function AuthForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const { t } = useTranslation();
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -19,8 +23,8 @@ export function AuthForm() {
     try {
       if (isNew) await createUserWithEmailAndPassword(auth, email, password);
       else await signInWithEmailAndPassword(auth, email, password);
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message.replace("Firebase: ", "") : "Could not sign in.");
+    } catch {
+      setError(t("auth.error"));
     } finally {
       setBusy(false);
     }
@@ -29,21 +33,24 @@ export function AuthForm() {
   return (
     <main className="grid min-h-screen place-items-center px-5 py-12">
       <section className="card w-full max-w-md p-7 sm:p-10 animate-rise">
-        <div className="mb-8 flex items-center gap-3">
-          <div className="brand-mark">W.</div>
-          <span className="font-display text-2xl font-semibold">Wordwise</span>
+        <div className="mb-8 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Image src="/wordwise-mark.svg" alt="" width={44} height={44} priority />
+            <span className="font-display text-2xl font-semibold">Wordwise</span>
+          </div>
+          <LanguageSwitcher />
         </div>
-        <p className="eyebrow mb-2">Three passes. One new word.</p>
-        <h1 className="font-display text-4xl font-semibold leading-tight">Make every word stick.</h1>
-        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">Build a personal vocabulary and review each word exactly when it is due.</p>
+        <p className="eyebrow mb-2">{t("auth.eyebrow")}</p>
+        <h1 className="font-display text-4xl font-semibold leading-tight">{t("auth.title")}</h1>
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t("auth.description")}</p>
 
         <form className="mt-8 space-y-4" onSubmit={submit}>
           <label className="block text-sm font-bold">
-            Email
+            {t("auth.email")}
             <input className="field mt-2" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" />
           </label>
           <label className="block text-sm font-bold">
-            Password
+            {t("auth.password")}
             <input
               className="field mt-2"
               type="password"
@@ -55,13 +62,13 @@ export function AuthForm() {
             />
           </label>
           {error ? <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
-          <button className="btn-primary w-full" disabled={busy}>{busy ? "Please wait…" : isNew ? "Create my account" : "Sign in"}</button>
+          <button className="btn-primary w-full" disabled={busy}>{busy ? t("auth.wait") : isNew ? t("auth.create") : t("auth.signIn")}</button>
         </form>
         <button className="text-button mt-5 w-full" onClick={() => {
           setIsNew(!isNew);
           setError("");
         }}>
-          {isNew ? "Already have an account? Sign in" : "New here? Create an account"}
+          {isNew ? t("auth.existing") : t("auth.new")}
         </button>
       </section>
     </main>
