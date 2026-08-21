@@ -8,8 +8,12 @@ export function SpeechButton({ text, label }: { text: string; label?: string }) 
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+    utterance.voice = voices.find((voice) => voice.name === "Google US English")
+      ?? voices.find((voice) => voice.lang.replace("_", "-") === "en-US")
+      ?? null;
     utterance.lang = "en-US";
-    utterance.rate = 0.9;
+    utterance.rate = 1;
     window.speechSynthesis.speak(utterance);
   }
 

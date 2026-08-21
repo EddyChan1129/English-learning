@@ -6,8 +6,8 @@ A focused vocabulary-learning app built with Next.js App Router, TypeScript, Tai
 
 ```text
 app/page.tsx                 Home: progress, target, and new-word form
-app/test/page.tsx            Randomized daily tests
-app/history/page.tsx         Searchable word-card history
+app/test/page.tsx            Sentence gap-fill daily tests
+app/history/page.tsx         Grouped and filterable word-card history
 app/history/[wordId]/        Word stage and full details
 app/friends/page.tsx         Friend code and friend list
 app/friends/[friendId]/      A friend's active word cards
@@ -42,9 +42,9 @@ users/{userId}/words/{wordId}
   commonPhrases: string[]
   stage: 0 | 1 | 2 | 3
   status: "learning" | "mastered" | "inactive"
-  nextTestDate: "YYYY-MM-DD"
+  nextTestDate: "ISO date-time"
   createdAt: ISO timestamp
-  lastTestedAt?: "YYYY-MM-DD"
+  lastTestedAt?: "ISO date-time"
   copiedFrom?: { userId: string, wordId: string }
 
 users/{userId}/friends/{friendUserId}
@@ -68,7 +68,7 @@ The app subscribes to the user's word collection and filters due words in the br
 
 - **Home** shows target and time progress, today's due count, and the add-word form.
 - **Test** contains only the active review flow.
-- **History** lists every saved word and supports search and status filters.
+- **History** groups words by their added date and supports search, status, part-of-speech, stage, and alphabetical controls.
 - **Word detail** opens from a History card and shows the current stage, dates, synonyms, and example sentences.
 - **Friends** adds people by exact friend code and opens their active vocabulary cards.
 - **Friend wordbook** copies the complete card into the current user's collection at Stage 0 and makes it due today.

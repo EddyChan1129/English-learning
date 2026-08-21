@@ -8,6 +8,7 @@ import { SpeechButton } from "@/components/SpeechButton";
 import { StageBadge } from "@/components/StageBadge";
 import { useApp } from "@/components/AppProvider";
 import { EditWordForm } from "@/components/EditWordForm";
+import { formatStoredDate, formatStoredDateTime } from "@/lib/date";
 import type { NewWord } from "@/types";
 
 export default function WordDetailPage() {
@@ -81,14 +82,14 @@ export default function WordDetailPage() {
           <dl>
             <DefinitionRow label={t("detail.currentStage")} value={t("detail.stageValue", { stage: word.stage })} />
             <DefinitionRow label={t("detail.status")} value={word.status === "mastered" ? t("common.mastered") : word.status === "inactive" ? t("common.inactive") : t("common.learning")} />
-            <DefinitionRow label={t("detail.added")} value={formatDate(word.createdAt, i18n.resolvedLanguage)} />
+            <DefinitionRow label={t("detail.added")} value={formatStoredDate(word.createdAt, i18n.resolvedLanguage)} />
             <DefinitionRow
               label={t("detail.lastTested")}
-              value={word.lastTestedAt ? formatDate(word.lastTestedAt, i18n.resolvedLanguage) : t("detail.notTested")}
+              value={word.lastTestedAt ? formatStoredDateTime(word.lastTestedAt, i18n.resolvedLanguage) : t("detail.notTested")}
             />
             <DefinitionRow
               label={t("detail.nextTest")}
-              value={word.status === "mastered" ? t("common.complete") : word.status === "inactive" ? t("detail.paused") : formatDate(word.nextTestDate, i18n.resolvedLanguage)}
+              value={word.status === "mastered" ? t("common.complete") : word.status === "inactive" ? t("detail.paused") : formatStoredDateTime(word.nextTestDate, i18n.resolvedLanguage)}
             />
           </dl>
         </section>
@@ -130,11 +131,6 @@ export default function WordDetailPage() {
 
 function DefinitionRow({ label, value }: { label: string; value: string }) {
   return <div className="definition-row"><dt>{label}</dt><dd>{value}</dd></div>;
-}
-
-function formatDate(value: string, language?: string) {
-  const date = new Date(value.includes("T") ? value : `${value}T00:00:00`);
-  return new Intl.DateTimeFormat(language ?? "en", { dateStyle: "medium" }).format(date);
 }
 
 function WordNotFound() {

@@ -57,5 +57,3 @@ export interface FriendDocument {
   displayName: string;
   addedAt: string;
 }
-
-export type TestMode = "pronunciation" | "synonym" | "gap-fill";

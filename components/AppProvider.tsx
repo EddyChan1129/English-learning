@@ -20,7 +20,7 @@ import {
   subscribeToWords,
   updateWord,
 } from "@/lib/firestore";
-import { toLocalDate } from "@/lib/date";
+import { isDue } from "@/lib/date";
 import type { FriendDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 type AppContextValue = {
@@ -121,7 +121,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const dueWords = useMemo(
-    () => words.filter((word) => word.status === "learning" && word.nextTestDate <= toLocalDate()),
+    () => words.filter((word) => word.status === "learning" && isDue(word.nextTestDate)),
     [words],
   );
 

@@ -10,7 +10,6 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { calculateTestUpdate } from "./spaced-repetition";
-import { toLocalDate } from "./date";
 import { makeCopiedWord } from "./word-copy";
 import type { FriendDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
@@ -118,21 +117,21 @@ export function subscribeToWords(
 }
 
 export async function addWord(uid: string, input: NewWord) {
-  const today = toLocalDate();
+  const now = new Date().toISOString();
   await addDoc(collection(requireDb(), "users", uid, "words"), {
     ...input,
     stage: 0,
     status: "learning",
-    nextTestDate: today,
-    createdAt: new Date().toISOString(),
+    nextTestDate: now,
+    createdAt: now,
   });
 }
 
 export async function copyFriendWord(uid: string, friendUid: string, source: WordDocument) {
-  const today = toLocalDate();
+  const now = new Date().toISOString();
   await addDoc(
     collection(requireDb(), "users", uid, "words"),
-    makeCopiedWord(source, friendUid, today, new Date().toISOString()),
+    makeCopiedWord(source, friendUid, now, now),
   );
 }
 
@@ -155,6 +154,6 @@ export async function recordTestResult(
     const snapshot = await transaction.get(reference);
     if (!snapshot.exists()) throw new Error("This word no longer exists.");
     const word = snapshot.data() as WordDocument;
-    transaction.update(reference, calculateTestUpdate(word.stage, passed, toLocalDate()));
+    transaction.update(reference, calculateTestUpdate(word.stage, passed, new Date().toISOString()));
   });
 }

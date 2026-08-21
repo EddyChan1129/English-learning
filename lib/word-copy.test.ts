@@ -18,7 +18,7 @@ test("copies a friend word at stage zero and makes it due today", () => {
     createdAt: "2026-08-01T00:00:00.000Z",
   };
 
-  assert.deepEqual(makeCopiedWord(source, "friend-2", "2026-08-19", "2026-08-19T10:00:00.000Z"), {
+  assert.deepEqual(makeCopiedWord(source, "friend-2", "2026-08-19T10:00:00.000Z", "2026-08-19T10:00:00.000Z"), {
     word: "demonstrate",
     chineseMeaning: "示範；展示",
     synonyms: ["show"],
@@ -27,7 +27,7 @@ test("copies a friend word at stage zero and makes it due today", () => {
     commonPhrases: ["demonstrate that ...", "demonstrate how ..."],
     stage: 0,
     status: "learning",
-    nextTestDate: "2026-08-19",
+    nextTestDate: "2026-08-19T10:00:00.000Z",
     createdAt: "2026-08-19T10:00:00.000Z",
     copiedFrom: { userId: "friend-2", wordId: "source-word" },
   });

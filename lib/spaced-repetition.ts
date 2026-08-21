@@ -1,5 +1,5 @@
 import type { Stage, WordDocument } from "@/types";
-import { addDays } from "./date.ts";
+import { addDaysToTimestamp } from "./date.ts";
 
 export type TestUpdate = Pick<
   WordDocument,
@@ -9,14 +9,14 @@ export type TestUpdate = Pick<
 export function calculateTestUpdate(
   stage: Stage,
   passed: boolean,
-  today: string,
+  testedAt: string,
 ): TestUpdate {
   if (!passed) {
     return {
       stage,
       status: stage === 3 ? "mastered" : "learning",
-      nextTestDate: addDays(today, 3),
-      lastTestedAt: today,
+      nextTestDate: addDaysToTimestamp(testedAt, 3),
+      lastTestedAt: testedAt,
     };
   }
 
@@ -25,7 +25,7 @@ export function calculateTestUpdate(
     stage: nextStage,
     status: nextStage === 3 ? "mastered" : "learning",
     nextTestDate:
-      nextStage === 3 ? today : addDays(today, nextStage === 1 ? 2 : 4),
-    lastTestedAt: today,
+      nextStage === 3 ? testedAt : addDaysToTimestamp(testedAt, nextStage === 1 ? 2 : 4),
+    lastTestedAt: testedAt,
   };
 }
