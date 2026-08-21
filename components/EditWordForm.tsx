@@ -78,7 +78,7 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
-          <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, { sentence: "", explanation: "" }])}>{t("add.addSentence")}</button>
+          {sentences.length < 4 ? <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, { sentence: "", explanation: "" }])}>{t("add.addSentence")}</button> : null}
         </div>
         {sentences.map(({ sentence, explanation }, index) => (
           <div key={index} className="rounded-lg border border-[var(--line)] bg-[#fbfcff] p-3">

@@ -6,7 +6,7 @@ import type { NewWord, PartOfSpeech } from "@/types";
 import { SpeechButton } from "./SpeechButton";
 import { RequiredMark, WordMetadataFields } from "./WordMetadataFields";
 
-const EMPTY_SENTENCES = () => Array.from({ length: 4 }, () => ({ sentence: "", explanation: "" }));
+const EMPTY_SENTENCES = () => Array.from({ length: 2 }, () => ({ sentence: "", explanation: "" }));
 
 export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void> }) {
   const [word, setWord] = useState("");
@@ -81,7 +81,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
             required
             value={word}
             onChange={(event) => setWord(event.target.value)}
-            placeholder="serendipity"
+            placeholder="used to be"
           />
         </label>
         <label className="text-sm font-bold">
@@ -92,7 +92,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
             required
             value={chineseMeaning}
             onChange={(event) => setChineseMeaning(event.target.value)}
-            placeholder="意外發現美好事物的運氣"
+            placeholder="以前是；曾經是"
           />
         </label>
       </div>
@@ -100,13 +100,13 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
         {t("add.synonyms")}
         <RequiredMark />
         <span className="font-normal text-[var(--muted)]"> {t("add.commaSeparated")}</span>
-        <input className="field mt-2" required value={synonyms} onChange={(event) => setSynonyms(event.target.value)} placeholder="chance, discovery" />
+        <input className="field mt-2" required value={synonyms} onChange={(event) => setSynonyms(event.target.value)} placeholder="was once, formerly" />
       </label>
       <WordMetadataFields selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
       <div className="mt-4 space-y-3">
         <div className="sentence-fields-heading flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
-          <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, { sentence: "", explanation: "" }])}>{t("add.addSentence")}</button>
+          {sentences.length < 4 ? <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, { sentence: "", explanation: "" }])}>{t("add.addSentence")}</button> : null}
         </div>
         {sentences.map(({ sentence, explanation }, index) => (
           <div key={index} className="rounded-lg border border-[var(--line)] bg-[#fbfcff] p-3">
