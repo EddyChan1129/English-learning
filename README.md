@@ -36,6 +36,7 @@ users/{userId}
 users/{userId}/words/{wordId}
   word: string
   chineseMeaning: string
+  chineseMeanings: string[]
   synonyms: string[]
   sentences: string[]
   sentenceExplanations: string[]

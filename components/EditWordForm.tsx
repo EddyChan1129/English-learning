@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { NewWord, PartOfSpeech, WordDocument } from "@/types";
+import { ChineseMeaningFields } from "./ChineseMeaningFields";
 import { SpeechButton } from "./SpeechButton";
 import { RequiredMark, WordMetadataFields } from "./WordMetadataFields";
 
@@ -12,7 +13,7 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
   onCancel: () => void;
 }) {
   const [word, setWord] = useState(initialWord.word);
-  const [chineseMeaning, setChineseMeaning] = useState(initialWord.chineseMeaning);
+  const [chineseMeanings, setChineseMeanings] = useState(initialWord.chineseMeanings);
   const [synonyms, setSynonyms] = useState(initialWord.synonyms.join(", "));
   const [partsOfSpeech, setPartsOfSpeech] = useState<PartOfSpeech[]>(initialWord.partsOfSpeech);
   const [commonPhrases, setCommonPhrases] = useState(initialWord.commonPhrases.join("\n"));
@@ -31,10 +32,12 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     const cleanSynonyms = synonyms.split(",").map((item) => item.trim()).filter(Boolean);
+    const cleanChineseMeanings = chineseMeanings.map((item) => item.trim()).filter(Boolean);
     const cleanSentences = sentences
       .map(({ sentence, explanation }) => ({ sentence: sentence.trim(), explanation: explanation.trim() }))
       .filter(({ sentence }) => sentence);
     if (!cleanSynonyms.length) return setError(t("add.synonymError"));
+    if (!cleanChineseMeanings.length) return setError(t("add.chineseMeaningError"));
     if (!partsOfSpeech.length) return setError(t("add.partsOfSpeechError"));
     if (cleanSentences.length < 2) return setError(t("add.minimumError"));
     if (!cleanSentences.some(({ sentence }) => sentence.toLowerCase().includes(word.trim().toLowerCase()))) {
@@ -46,7 +49,8 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
     try {
       await onSave({
         word: word.trim(),
-        chineseMeaning: chineseMeaning.trim(),
+        chineseMeaning: cleanChineseMeanings[0],
+        chineseMeanings: cleanChineseMeanings,
         synonyms: cleanSynonyms,
         sentences: cleanSentences.map(({ sentence }) => sentence),
         sentenceExplanations: cleanSentences.map(({ explanation }) => explanation),
@@ -68,7 +72,7 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-bold">{t("add.targetWord")}<RequiredMark /><input className="field mt-2" required value={word} onChange={(event) => setWord(event.target.value)} /></label>
-        <label className="text-sm font-bold">{t("add.chineseMeaning")}<RequiredMark /><input className="field mt-2" required value={chineseMeaning} onChange={(event) => setChineseMeaning(event.target.value)} /></label>
+        <ChineseMeaningFields values={chineseMeanings} onChange={setChineseMeanings} />
       </div>
       <label className="mt-4 block text-sm font-bold">
         {t("add.synonyms")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span>

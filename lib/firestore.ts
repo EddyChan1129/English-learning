@@ -107,6 +107,7 @@ export function subscribeToWords(
         return {
           ...data,
           id: item.id,
+          chineseMeanings: data.chineseMeanings?.length ? data.chineseMeanings : [data.chineseMeaning].filter(Boolean),
           partsOfSpeech: data.partsOfSpeech ?? [],
           commonPhrases: data.commonPhrases ?? [],
           sentenceExplanations: data.sentenceExplanations ?? [],

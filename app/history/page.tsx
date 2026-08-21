@@ -27,7 +27,7 @@ export default function HistoryPage() {
       const matchesStatus = statusFilter === "all" || word.status === statusFilter;
       const matchesPart = partFilter === "all" || word.partsOfSpeech.includes(partFilter);
       const matchesStage = stageFilter === "all" || String(word.stage) === stageFilter;
-      const matchesQuery = !normalizedQuery || `${word.word} ${word.chineseMeaning}`.toLowerCase().includes(normalizedQuery);
+      const matchesQuery = !normalizedQuery || `${word.word} ${word.chineseMeanings.join(" ")}`.toLowerCase().includes(normalizedQuery);
       return matchesStatus && matchesPart && matchesStage && matchesQuery;
     });
 
@@ -125,7 +125,7 @@ function WordCard({ word }: { word: WordDocument }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-display truncate text-3xl font-semibold">{word.word}</h2>
-          <p className="mt-1 truncate text-sm text-[var(--muted)]">{word.chineseMeaning}</p>
+          <p className="mt-1 truncate text-sm text-[var(--muted)]">{word.chineseMeanings.join("；")}</p>
         </div>
         <span className="word-card-arrow" aria-hidden="true">↗</span>
       </div>

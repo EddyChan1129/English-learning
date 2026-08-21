@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { NewWord, PartOfSpeech } from "@/types";
+import { ChineseMeaningFields } from "./ChineseMeaningFields";
 import { SpeechButton } from "./SpeechButton";
 import { RequiredMark, WordMetadataFields } from "./WordMetadataFields";
 
@@ -10,7 +11,7 @@ const EMPTY_SENTENCES = () => Array.from({ length: 2 }, () => ({ sentence: "", e
 
 export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void> }) {
   const [word, setWord] = useState("");
-  const [chineseMeaning, setChineseMeaning] = useState("");
+  const [chineseMeanings, setChineseMeanings] = useState([""]);
   const [synonyms, setSynonyms] = useState("");
   const [partsOfSpeech, setPartsOfSpeech] = useState<PartOfSpeech[]>([]);
   const [commonPhrases, setCommonPhrases] = useState("");
@@ -26,10 +27,12 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     const cleanSynonyms = synonyms.split(",").map((item) => item.trim()).filter(Boolean);
+    const cleanChineseMeanings = chineseMeanings.map((item) => item.trim()).filter(Boolean);
     const cleanSentences = sentences
       .map(({ sentence, explanation }) => ({ sentence: sentence.trim(), explanation: explanation.trim() }))
       .filter(({ sentence }) => sentence);
     if (!cleanSynonyms.length) return setError(t("add.synonymError"));
+    if (!cleanChineseMeanings.length) return setError(t("add.chineseMeaningError"));
     if (!partsOfSpeech.length) return setError(t("add.partsOfSpeechError"));
     if (cleanSentences.length < 2) return setError(t("add.minimumError"));
     const includesTargetWord = cleanSentences.some(({ sentence }) =>
@@ -43,7 +46,8 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
     try {
       await onAdd({
         word: word.trim(),
-        chineseMeaning: chineseMeaning.trim(),
+        chineseMeaning: cleanChineseMeanings[0],
+        chineseMeanings: cleanChineseMeanings,
         synonyms: cleanSynonyms,
         sentences: cleanSentences.map(({ sentence }) => sentence),
         sentenceExplanations: cleanSentences.map(({ explanation }) => explanation),
@@ -51,7 +55,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
         commonPhrases: commonPhrases.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
       });
       setWord("");
-      setChineseMeaning("");
+      setChineseMeanings([""]);
       setSynonyms("");
       setPartsOfSpeech([]);
       setCommonPhrases("");
@@ -72,29 +76,19 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
         </div>
         {word.trim() ? <SpeechButton text={word} /> : null}
       </div>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-7 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-bold">
           {t("add.targetWord")}
           <RequiredMark />
           <input
-            className="field mt-2"
+            className="field mt-4"
             required
             value={word}
             onChange={(event) => setWord(event.target.value)}
             placeholder="used to be"
           />
         </label>
-        <label className="text-sm font-bold">
-          {t("add.chineseMeaning")}
-          <RequiredMark />
-          <input
-            className="field mt-2"
-            required
-            value={chineseMeaning}
-            onChange={(event) => setChineseMeaning(event.target.value)}
-            placeholder="以前是；曾經是"
-          />
-        </label>
+        <ChineseMeaningFields values={chineseMeanings} onChange={setChineseMeanings} />
       </div>
       <label className="mt-4 block text-sm font-bold">
         {t("add.synonyms")}

@@ -63,7 +63,7 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
       <div className="p-6 sm:p-9">
         <p className="text-sm font-bold text-[var(--muted)]">{t("test.gapPrompt")}</p>
         <blockquote className="font-display mt-4 text-2xl font-medium leading-relaxed sm:text-3xl">“{gapSentence}”</blockquote>
-        <p className="mt-3 text-sm text-[var(--muted)]">{t("test.hint", { meaning: current.chineseMeaning })}</p>
+        <p className="mt-3 text-sm text-[var(--muted)]">{t("test.hint", { meaning: current.chineseMeanings.join("；") })}</p>
 
         <form className="mt-7 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => {
           event.preventDefault();

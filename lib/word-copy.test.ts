@@ -7,7 +7,8 @@ test("copies a friend word at stage zero and makes it due today", () => {
   const source: WordDocument = {
     id: "source-word",
     word: "demonstrate",
-    chineseMeaning: "示範；展示",
+    chineseMeaning: "示範",
+    chineseMeanings: ["示範", "顯示"],
     synonyms: ["show"],
     sentences: ["Let me demonstrate the idea.", "The results demonstrate a clear pattern."],
     sentenceExplanations: ["等我示範呢個概念。", "結果顯示出一個清晰模式。"],
@@ -21,7 +22,8 @@ test("copies a friend word at stage zero and makes it due today", () => {
 
   assert.deepEqual(makeCopiedWord(source, "friend-2", "2026-08-19T10:00:00.000Z", "2026-08-19T10:00:00.000Z"), {
     word: "demonstrate",
-    chineseMeaning: "示範；展示",
+    chineseMeaning: "示範",
+    chineseMeanings: ["示範", "顯示"],
     synonyms: ["show"],
     sentences: ["Let me demonstrate the idea.", "The results demonstrate a clear pattern."],
     sentenceExplanations: ["等我示範呢個概念。", "結果顯示出一個清晰模式。"],
@@ -33,4 +35,11 @@ test("copies a friend word at stage zero and makes it due today", () => {
     createdAt: "2026-08-19T10:00:00.000Z",
     copiedFrom: { userId: "friend-2", wordId: "source-word" },
   });
+
+  const legacySource: Partial<WordDocument> = { ...source };
+  delete legacySource.chineseMeanings;
+  assert.deepEqual(
+    makeCopiedWord(legacySource as WordDocument, "friend-2", "2026-08-19T10:00:00.000Z", "2026-08-19T10:00:00.000Z").chineseMeanings,
+    ["示範"],
+  );
 });

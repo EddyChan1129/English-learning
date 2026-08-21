@@ -58,7 +58,7 @@ export default function FriendWordsPage() {
         const alreadyAdded = ownWords.some((item) => item.word.trim().toLowerCase() === word.word.trim().toLowerCase());
         return (
           <article key={word.id} className="shared-word-card">
-            <div className="flex items-start justify-between gap-3"><div><h2>{word.word}</h2><p>{word.chineseMeaning}</p></div><StageBadge stage={word.stage} status={word.status} /></div>
+            <div className="flex items-start justify-between gap-3"><div><h2>{word.word}</h2><p>{word.chineseMeanings.join("；")}</p></div><StageBadge stage={word.stage} status={word.status} /></div>
             {word.partsOfSpeech.length ? <div className="mt-3 flex flex-wrap gap-1.5">{word.partsOfSpeech.map((part) => <span key={part} className="part-chip">{t(`partsOfSpeech.${part}`)}</span>)}</div> : null}
             {word.synonyms.length ? <p className="shared-synonyms">{word.synonyms.join(" · ")}</p> : null}
             {word.commonPhrases[0] ? <p className="shared-pattern">{word.commonPhrases[0]}</p> : null}

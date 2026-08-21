@@ -48,7 +48,7 @@ export default function WordDetailPage() {
             <h1 className="font-display text-5xl font-semibold sm:text-7xl">{word.word}</h1>
             <SpeechButton text={word.word} />
           </div>
-          <p className="mt-3 text-xl text-[var(--muted)]">{word.chineseMeaning}</p>
+          <p className="mt-3 text-xl text-[var(--muted)]">{word.chineseMeanings.join("；")}</p>
           {word.partsOfSpeech.length ? <div className="mt-3 flex flex-wrap gap-2">{word.partsOfSpeech.map((part) => <span key={part} className="part-chip">{t(`partsOfSpeech.${part}`)}</span>)}</div> : null}
         </div>
         <div className="detail-actions">

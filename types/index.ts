@@ -19,6 +19,7 @@ export interface WordDocument {
   id: string;
   word: string;
   chineseMeaning: string;
+  chineseMeanings: string[];
   synonyms: string[];
   sentences: string[];
   sentenceExplanations: string[];
@@ -37,7 +38,7 @@ export interface WordDocument {
 
 export type NewWord = Pick<
   WordDocument,
-  "word" | "chineseMeaning" | "synonyms" | "sentences" | "sentenceExplanations" | "partsOfSpeech" | "commonPhrases"
+  "word" | "chineseMeaning" | "chineseMeanings" | "synonyms" | "sentences" | "sentenceExplanations" | "partsOfSpeech" | "commonPhrases"
 >;
 
 export interface UserTarget {
