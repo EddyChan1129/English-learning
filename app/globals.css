@@ -174,6 +174,7 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .sentence-list li:last-child { border-bottom: 0; }
 .sentence-list li > span { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .65rem; color: var(--violet); }
 .sentence-list p { font-family: var(--font-display), serif; font-size: 1.15rem; line-height: 1.5; }
+.sentence-list small { display: block; margin-top: .25rem; color: var(--muted); font-size: .75rem; line-height: 1.5; }
 
 .save-overlay { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 1.5rem; background: rgba(20, 33, 61, .7); backdrop-filter: blur(5px); }
 .save-dialog { display: flex; width: min(100%, 27rem); align-items: center; gap: 1rem; border: 2px solid var(--ink); background: white; padding: 1.4rem; box-shadow: 8px 8px 0 var(--highlight); }

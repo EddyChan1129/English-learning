@@ -117,7 +117,10 @@ export default function WordDetailPage() {
               {word.sentences.map((sentence, index) => (
                 <li key={`${sentence}-${index}`}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
-                  <p>{sentence}</p>
+                  <div>
+                    <p>{sentence}</p>
+                    {word.sentenceExplanations[index] ? <small>{word.sentenceExplanations[index]}</small> : null}
+                  </div>
                   <SpeechButton text={sentence} label="" />
                 </li>
               ))}

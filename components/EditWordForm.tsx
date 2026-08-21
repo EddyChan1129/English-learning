@@ -16,23 +16,28 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
   const [synonyms, setSynonyms] = useState(initialWord.synonyms.join(", "));
   const [partsOfSpeech, setPartsOfSpeech] = useState<PartOfSpeech[]>(initialWord.partsOfSpeech);
   const [commonPhrases, setCommonPhrases] = useState(initialWord.commonPhrases.join("\n"));
-  const [sentences, setSentences] = useState(initialWord.sentences);
+  const [sentences, setSentences] = useState(() => initialWord.sentences.map((sentence, index) => ({
+    sentence,
+    explanation: initialWord.sentenceExplanations[index] ?? "",
+  })));
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const { t } = useTranslation();
 
-  function updateSentence(index: number, value: string) {
-    setSentences((current) => current.map((sentence, position) => position === index ? value : sentence));
+  function updateSentence(index: number, field: "sentence" | "explanation", value: string) {
+    setSentences((current) => current.map((entry, position) => position === index ? { ...entry, [field]: value } : entry));
   }
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     const cleanSynonyms = synonyms.split(",").map((item) => item.trim()).filter(Boolean);
-    const cleanSentences = sentences.map((sentence) => sentence.trim()).filter(Boolean);
+    const cleanSentences = sentences
+      .map(({ sentence, explanation }) => ({ sentence: sentence.trim(), explanation: explanation.trim() }))
+      .filter(({ sentence }) => sentence);
     if (!cleanSynonyms.length) return setError(t("add.synonymError"));
     if (!partsOfSpeech.length) return setError(t("add.partsOfSpeechError"));
     if (cleanSentences.length < 2) return setError(t("add.minimumError"));
-    if (!cleanSentences.some((sentence) => sentence.toLowerCase().includes(word.trim().toLowerCase()))) {
+    if (!cleanSentences.some(({ sentence }) => sentence.toLowerCase().includes(word.trim().toLowerCase()))) {
       return setError(t("add.targetError"));
     }
 
@@ -43,7 +48,8 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
         word: word.trim(),
         chineseMeaning: chineseMeaning.trim(),
         synonyms: cleanSynonyms,
-        sentences: cleanSentences,
+        sentences: cleanSentences.map(({ sentence }) => sentence),
+        sentenceExplanations: cleanSentences.map(({ explanation }) => explanation),
         partsOfSpeech,
         commonPhrases: commonPhrases.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
       });
@@ -72,10 +78,16 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
-          <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, ""])}>{t("add.addSentence")}</button>
+          <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, { sentence: "", explanation: "" }])}>{t("add.addSentence")}</button>
         </div>
-        {sentences.map((sentence, index) => (
-          <textarea key={index} className="field min-h-20 resize-y" required={index < 2} value={sentence} onChange={(event) => updateSentence(index, event.target.value)} placeholder={t("add.sentence", { number: index + 1 })} />
+        {sentences.map(({ sentence, explanation }, index) => (
+          <div key={index} className="rounded-lg border border-[var(--line)] bg-[#fbfcff] p-3">
+            <textarea className="field min-h-20 resize-y" required={index < 2} value={sentence} onChange={(event) => updateSentence(index, "sentence", event.target.value)} placeholder={t("add.sentence", { number: index + 1 })} aria-label={t("add.sentence", { number: index + 1 })} />
+            <label className="mt-3 block text-sm font-bold">
+              {t("add.sentenceExplanation", { number: index + 1 })}
+              <input className="field mt-2" value={explanation} onChange={(event) => updateSentence(index, "explanation", event.target.value)} placeholder={t("add.sentenceExplanation", { number: index + 1 })} />
+            </label>
+          </div>
         ))}
       </div>
       {error ? <p role="alert" className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}

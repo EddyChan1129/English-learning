@@ -7,10 +7,11 @@ import type { WordDocument } from "@/types";
 
 type TestSessionProps = {
   words: WordDocument[];
-  onResult: (word: WordDocument, passed: boolean) => Promise<void>;
+  mode: "formal" | "random";
+  onResult: (word: WordDocument, passed: boolean) => void | Promise<void>;
 };
 
-export function TestSession({ words, onResult }: TestSessionProps) {
+export function TestSession({ words, mode, onResult }: TestSessionProps) {
   const current = words[0];
   const [answer, setAnswer] = useState("");
   const [outcome, setOutcome] = useState<boolean | null>(null);
@@ -44,8 +45,8 @@ export function TestSession({ words, onResult }: TestSessionProps) {
     return (
       <section className="card p-8 text-center">
         <div className="mx-auto grid size-16 place-items-center border border-[var(--green)] bg-[var(--mint)] text-3xl text-[var(--green)]">✓</div>
-        <h2 className="font-display mt-4 text-3xl font-semibold">{t("test.completeTitle")}</h2>
-        <p className="mt-2 text-sm text-[var(--muted)]">{t("test.completeDescription")}</p>
+        <h2 className="font-display mt-4 text-3xl font-semibold">{t(mode === "formal" ? "test.completeTitle" : "test.randomCompleteTitle")}</h2>
+        <p className="mt-2 text-sm text-[var(--muted)]">{t(mode === "formal" ? "test.completeDescription" : "test.randomCompleteDescription")}</p>
       </section>
     );
   }
@@ -54,10 +55,10 @@ export function TestSession({ words, onResult }: TestSessionProps) {
     <section className="card overflow-hidden">
       <div className="flex items-center justify-between border-b border-[var(--line)] bg-[#f1effb] px-6 py-4">
         <div>
-          <span className="eyebrow">{t("test.review")}</span>
+          <span className="eyebrow">{t(mode === "formal" ? "test.review" : "test.randomReview")}</span>
           <span className="ml-3 text-xs text-[var(--muted)]">{t("test.remaining", { count: words.length })}</span>
         </div>
-        <span className="stage-badge">{t("test.gapFill")}</span>
+        <span className="stage-badge">{t(mode === "formal" ? "test.gapFill" : "test.noStage")}</span>
       </div>
       <div className="p-6 sm:p-9">
         <p className="text-sm font-bold text-[var(--muted)]">{t("test.gapPrompt")}</p>

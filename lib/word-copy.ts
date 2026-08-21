@@ -6,6 +6,7 @@ export function makeCopiedWord(source: WordDocument, friendUid: string, nextTest
     chineseMeaning: source.chineseMeaning,
     synonyms: source.synonyms,
     sentences: source.sentences,
+    sentenceExplanations: source.sentenceExplanations ?? [],
     partsOfSpeech: source.partsOfSpeech,
     commonPhrases: source.commonPhrases,
     stage: 0 as const,

@@ -109,6 +109,7 @@ export function subscribeToWords(
           id: item.id,
           partsOfSpeech: data.partsOfSpeech ?? [],
           commonPhrases: data.commonPhrases ?? [],
+          sentenceExplanations: data.sentenceExplanations ?? [],
         };
       })
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));

@@ -38,6 +38,7 @@ users/{userId}/words/{wordId}
   chineseMeaning: string
   synonyms: string[]
   sentences: string[]
+  sentenceExplanations: string[]
   partsOfSpeech: ("noun" | "verb" | "adjective" | ...)[]
   commonPhrases: string[]
   stage: 0 | 1 | 2 | 3
@@ -67,7 +68,7 @@ The app subscribes to the user's word collection and filters due words in the br
 ## Pages
 
 - **Home** shows target and time progress, today's due count, and the add-word form.
-- **Test** contains only the active review flow.
+- **Test** offers formal due reviews that update stages and a shuffled all-word practice mode that leaves stages unchanged.
 - **History** groups words by their added date and supports search, status, part-of-speech, stage, and alphabetical controls.
 - **Word detail** opens from a History card and shows the current stage, dates, synonyms, and example sentences.
 - **Friends** adds people by exact friend code and opens their active vocabulary cards.

@@ -21,6 +21,7 @@ export interface WordDocument {
   chineseMeaning: string;
   synonyms: string[];
   sentences: string[];
+  sentenceExplanations: string[];
   partsOfSpeech: PartOfSpeech[];
   commonPhrases: string[];
   stage: Stage;
@@ -36,7 +37,7 @@ export interface WordDocument {
 
 export type NewWord = Pick<
   WordDocument,
-  "word" | "chineseMeaning" | "synonyms" | "sentences" | "partsOfSpeech" | "commonPhrases"
+  "word" | "chineseMeaning" | "synonyms" | "sentences" | "sentenceExplanations" | "partsOfSpeech" | "commonPhrases"
 >;
 
 export interface UserTarget {
