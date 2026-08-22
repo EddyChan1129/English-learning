@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
 import type { Stage, WordDocument } from "@/types";
 import { StageMascot } from "./StageMascot";
 
@@ -10,12 +11,12 @@ export function StageBadge({ stage, status, large = false }: { stage: Stage; sta
     ? t("common.inactive")
     : status === "mastered" ? t("common.mastered") : "";
   return (
-    <span className={`stage-badge ${status} ${large ? "large" : ""}`}>
+    <Badge className={`stage-badge ${status} ${large ? "large" : ""}`}>
       <StageMascot stage={stage} size={large ? 52 : 34} />
       <span>
         <strong>{t("common.stageName", { stage, label: t(`stages.${stage}.label`) })}</strong>
         {statusLabel ? <small>{statusLabel}</small> : null}
       </span>
-    </span>
+    </Badge>
   );
 }

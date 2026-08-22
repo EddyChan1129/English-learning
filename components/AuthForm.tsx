@@ -35,8 +35,8 @@ export function AuthForm() {
       <section className="card w-full max-w-md p-7 sm:p-10 animate-rise">
         <div className="mb-8 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Image src="/wordwise-mark.svg" alt="" width={44} height={44} priority />
-            <span className="font-display text-2xl font-semibold">Wordwise</span>
+            <Image src="/stage3.png" alt="" width={52} height={52} priority className="auth-brand-mascot" />
+            <span><strong className="font-display block text-2xl font-semibold leading-none">Fowl to Phoenix</strong><small className="mt-1 block text-xs text-[var(--muted)]">山雞變鳳凰</small></span>
           </div>
           <LanguageSwitcher />
         </div>

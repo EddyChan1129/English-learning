@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TestSession } from "@/components/TestSession";
 import { useApp } from "@/components/AppProvider";
-import { shuffled } from "@/lib/test-helpers";
+import { rotateFirst, shuffled } from "@/lib/test-helpers";
 import type { WordDocument } from "@/types";
 
 type TestMode = "formal" | "random";
@@ -46,11 +46,12 @@ export default function TestPage() {
       {!wordsLoaded
         ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("testPage.preparing")}</p>
         : mode === "formal"
-          ? <TestSession key={`formal-${dueWords[0]?.id ?? "empty"}`} mode="formal" words={dueWords} onResult={saveTestResult} />
+          ? <FormalTestQueue initialWords={dueWords} words={words} onResult={saveTestResult} />
           : <TestSession
               key={`random-${randomWords[0]?.id ?? "empty"}`}
               mode="random"
               words={randomWords}
+              onSkip={() => setRandomWords((current) => rotateFirst(current))}
               onResult={() => setRandomWords((current) => current.slice(1))}
             />}
 
@@ -58,5 +59,29 @@ export default function TestPage() {
         {t("testPage.prompt")} <Link href="/history" className="text-button">{t("testPage.openHistory")}</Link>
       </p>
     </div>
+  );
+}
+
+function FormalTestQueue({ initialWords, words, onResult }: {
+  initialWords: WordDocument[];
+  words: WordDocument[];
+  onResult: (word: WordDocument, passed: boolean, usedHint: boolean) => Promise<void>;
+}) {
+  const [queueIds, setQueueIds] = useState(() => initialWords.map((word) => word.id));
+  const queue = useMemo(() => queueIds
+    .map((id) => words.find((word) => word.id === id))
+    .filter((word): word is WordDocument => Boolean(word)), [queueIds, words]);
+
+  return (
+    <TestSession
+      key={`formal-${queue[0]?.id ?? "empty"}`}
+      mode="formal"
+      words={queue}
+      onSkip={() => setQueueIds((current) => rotateFirst(current))}
+      onResult={async (word, passed, usedHint) => {
+        await onResult(word, passed, usedHint);
+        setQueueIds((current) => current.filter((id) => id !== word.id));
+      }}
+    />
   );
 }

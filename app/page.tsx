@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddWordForm } from "@/components/AddWordForm";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { StageMascot } from "@/components/StageMascot";
 import { StageProgress } from "@/components/StageProgress";
 import { TargetForm } from "@/components/TargetForm";
@@ -33,18 +35,18 @@ export default function HomePage() {
 
   return (
     <div className="space-y-7 animate-rise">
-      <header className="theme-hero">
-        <div>
-          <p className="eyebrow">{t("home.themeEyebrow")}</p>
-          <h1>{t("home.themeTitle")}</h1>
-          <strong>{t("home.themeLead")}</strong>
-          <p>{t("home.themeDescription")}</p>
-          <button className="text-button" onClick={() => setEditingTarget(true)}>{t("home.editTarget")}</button>
-        </div>
-        <StageMascot stage={3} size={260} className="theme-hero-mascot" />
-      </header>
-
-      <StageProgress counts={countStages(words)} />
+      <Card className="theme-hero">
+        <header className="theme-hero-copy">
+          <StageMascot stage={3} size={72} className="theme-hero-mascot" />
+          <div>
+            <p className="eyebrow">{t("home.themeEyebrow")}</p>
+            <h1>{t("home.themeTitle")}</h1>
+            <p>{t("home.themeLead")}</p>
+          </div>
+          <Button variant="link" size="sm" onClick={() => setEditingTarget(true)}>{t("home.editTarget")}</Button>
+        </header>
+        <StageProgress counts={countStages(words)} />
+      </Card>
       <ProgressDashboard target={target} words={words} onEditTarget={() => setEditingTarget(true)} />
 
       <section className="home-learning-workspace">

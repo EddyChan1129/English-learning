@@ -37,12 +37,45 @@ export interface WordDocument {
     userId: string;
     wordId: string;
   };
+  sourcePlan?: {
+    planId: string;
+    entryId: string;
+  };
 }
 
 export type NewWord = Pick<
   WordDocument,
   "word" | "chineseMeaning" | "chineseMeanings" | "synonyms" | "sentences" | "sentenceExplanations" | "partsOfSpeech" | "commonPhrases"
->;
+> & Pick<WordDocument, "sourcePlan">;
+
+export interface LearningExample {
+  english: string;
+  chinese: string;
+}
+
+export interface LearningPlan {
+  id: string;
+  slug: string;
+  title: { en: string; zh: string };
+  description: { en: string; zh: string };
+  level: { en: string; zh: string };
+  entryCount: number;
+  order: number;
+  featured: boolean;
+  published: boolean;
+}
+
+export interface LearningPlanEntry {
+  id: string;
+  order: number;
+  term: string;
+  englishDefinition: string;
+  chineseMeanings: string[];
+  synonyms: string[];
+  examples: LearningExample[];
+  partsOfSpeech: PartOfSpeech[];
+  searchTokens: string[];
+}
 
 export interface UserTarget {
   targetWords: number;

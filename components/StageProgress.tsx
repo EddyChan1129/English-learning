@@ -1,6 +1,8 @@
 "use client";
 
 import { useTranslation } from "react-i18next";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { STAGES } from "@/lib/stages";
 import type { Stage } from "@/types";
 import { StageMascot } from "./StageMascot";
@@ -11,7 +13,7 @@ export function StageProgress({ currentStage, counts }: {
 }) {
   const { t } = useTranslation();
   return (
-    <section className="stage-journey" aria-label={t("stageProgress.label")}>
+    <Card className="stage-journey" role="group" aria-label={t("stageProgress.label")}>
       <div className="stage-journey-track">
         {STAGES.map((stage) => {
           const state = currentStage === undefined
@@ -22,19 +24,29 @@ export function StageProgress({ currentStage, counts }: {
                 ? "current"
                 : "future";
           return (
-            <div className={`stage-journey-step ${state}`} key={stage}>
+            <div
+              className={`stage-journey-step ${state}`}
+              key={stage}
+              aria-current={state === "current" ? "step" : undefined}
+              aria-label={t("common.stageName", { stage, label: t(`stages.${stage}.label`) })}
+            >
               <div className="stage-journey-image">
-                <StageMascot stage={stage} size={112} />
+                <StageMascot stage={stage} size={56} />
                 {state === "complete" ? <span className="stage-check" aria-label={t("stageProgress.complete")}>✓</span> : null}
               </div>
-              <strong>{t("common.stageName", { stage, label: t(`stages.${stage}.label`) })}</strong>
-              <small>{counts
-                ? t("stageProgress.wordCount", { count: counts[stage] ?? 0 })
-                : t(`stageProgress.${state}`)}</small>
+              <div className="stage-journey-copy">
+                <strong className="stage-name-full">{t("common.stageName", { stage, label: t(`stages.${stage}.label`) })}</strong>
+                <strong className="stage-name-compact">{stage} · {t(`stageProgress.shortLabels.${stage}`)}</strong>
+                {counts ? (
+                  <Badge className="stage-count">{counts[stage] ?? 0}</Badge>
+                ) : (
+                  <small>{t(`stageProgress.${state}`)}</small>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
-    </section>
+    </Card>
   );
 }

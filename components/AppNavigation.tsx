@@ -8,6 +8,8 @@ import { signOut, type User } from "firebase/auth";
 import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import type { LearningPlan } from "@/types";
 
 const links = [
   { href: "/", labelKey: "nav.home" },
@@ -16,10 +18,12 @@ const links = [
   { href: "/friends", labelKey: "nav.friends" },
 ];
 
-export function AppNavigation({ user }: { user: User }) {
+export function AppNavigation({ user, learningPlans }: { user: User; learningPlans: LearningPlan[] }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
+  const vocabActive = pathname.startsWith("/vocab") || pathname.startsWith("/must-learn");
+  const featuredPlans = learningPlans.filter((plan) => plan.featured).slice(0, 6);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -38,14 +42,36 @@ export function AppNavigation({ user }: { user: User }) {
   return (
     <header className="app-header">
       <div className="app-header-inner">
-        <Link href="/" className="brand" aria-label={t("nav.wordwiseHome")}>
-          <Image src="/wordwise-mark.svg" alt="" width={42} height={42} priority />
-          <span><strong>Wordwise</strong><small>{t("nav.fieldNotes")}</small></span>
+        <Link href="/" className="brand" aria-label={t("nav.brandHome")}>
+          <Image src="/stage3.png" alt="" width={48} height={48} priority />
+          <span><strong>Fowl to Phoenix</strong><small>山雞變鳳凰</small></span>
         </Link>
 
         <nav className="index-nav" aria-label={t("nav.mainNavigation")}>
-          {links.map((link) => {
+          {links.slice(0, 2).map((link) => {
             const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
+            return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>{t(link.labelKey)}</Link>;
+          })}
+          <DropdownMenu>
+            <DropdownMenuTrigger className={`nav-dropdown-trigger ${vocabActive ? "active" : ""}`} aria-current={vocabActive ? "page" : undefined}>
+              {t("nav.vocab")} <span aria-hidden="true">⌄</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="plan-dropdown">
+              <div className="plan-dropdown-heading"><strong>{t("nav.learningPlans")}</strong><small>{t("nav.learningPlansHint")}</small></div>
+              {featuredPlans.map((plan) => (
+                <DropdownMenuItem key={plan.id} asChild>
+                  <Link href={`/vocab/${plan.slug}`} className="plan-dropdown-item">
+                    <span><strong>{plan.title.en}</strong><small>{plan.title.zh}</small></span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild><Link href="/vocab" className="plan-dropdown-all">{t("nav.allPlans")} <span aria-hidden="true">→</span></Link></DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          {links.slice(2).map((link) => {
+            const active = pathname.startsWith(link.href);
             return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>{t(link.labelKey)}</Link>;
           })}
         </nav>
@@ -58,9 +84,9 @@ export function AppNavigation({ user }: { user: User }) {
       </div>
 
       <div className="mobile-header-bar">
-        <Link href="/" className="mobile-brand" aria-label={t("nav.wordwiseHome")} onClick={() => setMenuOpen(false)}>
-          <Image src="/wordwise-mark.svg" alt="" width={36} height={36} priority />
-          <strong>Wordwise</strong>
+        <Link href="/" className="mobile-brand" aria-label={t("nav.brandHome")} onClick={() => setMenuOpen(false)}>
+          <Image src="/stage3.png" alt="" width={40} height={40} priority />
+          <span><strong>Fowl to Phoenix</strong><small>山雞變鳳凰</small></span>
         </Link>
         <button
           type="button"
@@ -78,10 +104,22 @@ export function AppNavigation({ user }: { user: User }) {
         <div className="mobile-menu-layer">
           <button className="mobile-menu-backdrop" type="button" aria-label={t("nav.closeMenu")} onClick={() => setMenuOpen(false)} />
           <div id="mobile-navigation" className="mobile-menu-panel">
-            <nav aria-label={t("nav.mainNavigation")}>{links.map((link) => {
+            <nav aria-label={t("nav.mainNavigation")}>{links.slice(0, 2).map((link) => {
               const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
               return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined} onClick={() => setMenuOpen(false)}><span>{t(link.labelKey)}</span><span aria-hidden="true">→</span></Link>;
-            })}</nav>
+            })}
+              <details className="mobile-plan-menu" open={vocabActive}>
+                <summary className={vocabActive ? "active" : ""}><span>{t("nav.vocab")}</span><span aria-hidden="true">⌄</span></summary>
+                <div>
+                  {featuredPlans.map((plan) => <Link key={plan.id} href={`/vocab/${plan.slug}`} onClick={() => setMenuOpen(false)}><span><strong>{plan.title.en}</strong><small>{plan.title.zh}</small></span><span aria-hidden="true">→</span></Link>)}
+                  <Link href="/vocab" onClick={() => setMenuOpen(false)}><span>{t("nav.allPlans")}</span><span aria-hidden="true">→</span></Link>
+                </div>
+              </details>
+              {links.slice(2).map((link) => {
+                const active = pathname.startsWith(link.href);
+                return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined} onClick={() => setMenuOpen(false)}><span>{t(link.labelKey)}</span><span aria-hidden="true">→</span></Link>;
+              })}
+            </nav>
             <div className="mobile-account-row">
               <div><small>{t("nav.account")}</small><strong>{user.email?.split("@")[0]}</strong></div>
               <LanguageSwitcher />

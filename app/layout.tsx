@@ -10,10 +10,10 @@ const display = Newsreader({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  applicationName: "Wordwise",
+  applicationName: "Fowl to Phoenix",
   title: {
-    default: "Wordwise | English Vocabulary Learning 英語詞彙學習",
-    template: "%s | Wordwise",
+    default: "Fowl to Phoenix | 山雞變鳳凰",
+    template: "%s | Fowl to Phoenix",
   },
   description: "Learn and retain English vocabulary with three-pass spaced repetition, natural US English audio and focused sentence gap-fill tests. 透過間隔重溫掌握英語詞彙。",
   keywords: [
@@ -27,21 +27,21 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "/" },
   icons: {
-    icon: [{ url: "/wordwise-mark.svg", type: "image/svg+xml" }],
-    apple: "/wordwise-mark.svg",
+    icon: [{ url: "/stage3.png", type: "image/png", sizes: "1254x1254" }],
+    apple: "/stage3.png",
   },
   openGraph: {
     type: "website",
     url: "/",
-    siteName: "Wordwise",
-    title: "Wordwise — Vocabulary that sticks",
+    siteName: "Fowl to Phoenix",
+    title: "Fowl to Phoenix — 山雞變鳳凰",
     description: "A focused three-pass English vocabulary learning companion.",
     locale: "en_HK",
     alternateLocale: "zh_HK",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Wordwise — Vocabulary that sticks",
+    title: "Fowl to Phoenix — 山雞變鳳凰",
     description: "Learn and retain English vocabulary with three-pass spaced repetition.",
   },
   category: "education",
@@ -49,16 +49,16 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FFD84D",
+  themeColor: "#C9562F",
   colorScheme: "light",
 };
 
 const structuredData = {
   "@context": "https://schema.org",
   "@type": "WebApplication",
-  name: "Wordwise",
+  name: "Fowl to Phoenix",
   url: siteUrl,
-  description: "An English vocabulary learning application using three-pass spaced repetition, US English audio and sentence gap-fill tests.",
+  description: "Fowl to Phoenix is an English vocabulary learning application using three-pass spaced repetition, US English audio and sentence gap-fill tests.",
   applicationCategory: "EducationalApplication",
   operatingSystem: "Any",
   inLanguage: ["en", "zh-HK"],

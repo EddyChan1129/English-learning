@@ -12,6 +12,7 @@ import {
   addWord,
   copyFriendWord,
   ensureUserProfile,
+  loadLearningPlans,
   loadTarget,
   recordTestResult,
   saveTarget,
@@ -22,7 +23,8 @@ import {
 } from "@/lib/firestore";
 import { isDue } from "@/lib/date";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "@/lib/vocabulary";
-import type { FriendDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
+import { FALLBACK_LEARNING_PLANS } from "@/lib/learning-plans";
+import type { FriendDocument, LearningPlan, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 type AppContextValue = {
   user: User;
@@ -34,6 +36,8 @@ type AppContextValue = {
   targetLoaded: boolean;
   words: WordDocument[];
   wordsLoaded: boolean;
+  learningPlans: LearningPlan[];
+  learningPlansLoaded: boolean;
   savingWord: boolean;
   dueWords: WordDocument[];
   saveLearningTarget: (target: UserTarget) => Promise<void>;
@@ -58,6 +62,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [targetLoaded, setTargetLoaded] = useState(false);
   const [words, setWords] = useState<WordDocument[]>([]);
   const [wordsLoaded, setWordsLoaded] = useState(false);
+  const [learningPlans, setLearningPlans] = useState<LearningPlan[]>(FALLBACK_LEARNING_PLANS);
+  const [learningPlansLoaded, setLearningPlansLoaded] = useState(false);
   const [savingWord, setSavingWord] = useState(false);
   const [error, setError] = useState("");
 
@@ -85,12 +91,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setTargetLoaded(false);
         setWords([]);
         setWordsLoaded(false);
+        setLearningPlansLoaded(false);
       }
     });
   }, []);
 
   useEffect(() => {
     if (!user) return;
+    loadLearningPlans()
+      .then((plans) => setLearningPlans(plans.length ? plans : FALLBACK_LEARNING_PLANS))
+      .catch(() => setLearningPlans(FALLBACK_LEARNING_PLANS))
+      .finally(() => setLearningPlansLoaded(true));
     ensureUserProfile(user.uid, user.email)
       .then(setProfile)
       .catch(() => setError(getErrorMessage()))
@@ -197,6 +208,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       targetLoaded,
       words,
       wordsLoaded,
+      learningPlans,
+      learningPlansLoaded,
       savingWord,
       dueWords,
       saveLearningTarget,
@@ -207,7 +220,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setWordEnabled,
       saveTestResult,
     }}>
-      <AppNavigation user={user} />
+      <AppNavigation user={user} learningPlans={learningPlans} />
       <main className="app-content">
         {error ? <ErrorNotice message={error} onDismiss={() => setError("")} /> : null}
         {children}
@@ -280,7 +293,7 @@ function AppFooter() {
   const { t } = useTranslation();
   return (
     <footer className="app-footer">
-      <span>Wordwise</span>
+      <span>Fowl to Phoenix</span>
       <p>{t("footer.createdBy")} <strong>Eddy Chan</strong></p>
     </footer>
   );

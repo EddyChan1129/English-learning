@@ -3,16 +3,20 @@ import {
   doc,
   getDoc,
   getDocs,
+  limit,
   onSnapshot,
+  orderBy,
+  query,
   runTransaction,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { calculateTestUpdate } from "./spaced-repetition";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "./vocabulary";
 import { makeCopiedWord } from "./word-copy";
-import type { FriendDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
+import type { FriendDocument, LearningPlan, LearningPlanEntry, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 function requireDb() {
   if (!db) throw new Error("Firebase is not configured.");
@@ -28,6 +32,26 @@ export async function loadTarget(uid: string): Promise<UserTarget | null> {
   return snapshot.exists() ? (snapshot.data() as UserTarget) : null;
 }
 
+export async function loadLearningPlans(): Promise<LearningPlan[]> {
+  const snapshot = await getDocs(query(
+    collection(requireDb(), "learningPlans"),
+    where("published", "==", true),
+    limit(100),
+  ));
+  return snapshot.docs
+    .map((item) => ({ ...item.data(), id: item.id }) as LearningPlan)
+    .sort((a, b) => a.order - b.order);
+}
+
+export async function loadLearningPlanEntries(planId: string): Promise<LearningPlanEntry[]> {
+  const snapshot = await getDocs(query(
+    collection(requireDb(), "learningPlans", planId, "entries"),
+    orderBy("order", "asc"),
+    limit(500),
+  ));
+  return snapshot.docs.map((item) => ({ ...item.data(), id: item.id }) as LearningPlanEntry);
+}
+
 export async function ensureUserProfile(uid: string, email: string | null): Promise<UserProfile> {
   const reference = doc(requireDb(), "profiles", uid);
   const snapshot = await getDoc(reference);
@@ -39,7 +63,7 @@ export async function ensureUserProfile(uid: string, email: string | null): Prom
   const profile: UserProfile = {
     uid,
     friendCode,
-    displayName: existing?.displayName || email?.split("@")[0] || "Wordwise learner",
+    displayName: existing?.displayName || email?.split("@")[0] || "Fowl to Phoenix learner",
     createdAt: existing?.createdAt || new Date().toISOString(),
   };
   await setDoc(reference, profile);

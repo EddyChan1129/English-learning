@@ -3,18 +3,21 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { StageMascot } from "@/components/StageMascot";
+import { SpeechButton } from "@/components/SpeechButton";
 import { calculateTestUpdate } from "@/lib/spaced-repetition";
-import { getSpellingHint, isWordAnswerCorrect, makeGapSentence } from "@/lib/test-helpers";
+import { getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion } from "@/lib/test-helpers";
 import type { Stage, WordDocument } from "@/types";
 
 type TestSessionProps = {
   words: WordDocument[];
   mode: "formal" | "random";
   onResult: (word: WordDocument, passed: boolean, usedHint: boolean) => void | Promise<void>;
+  onSkip: (word: WordDocument) => void | Promise<void>;
 };
 
-export function TestSession({ words, mode, onResult }: TestSessionProps) {
+export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps) {
   const current = words[0];
   const [answer, setAnswer] = useState("");
   const [outcome, setOutcome] = useState<boolean | null>(null);
@@ -22,17 +25,17 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
   const [busy, setBusy] = useState(false);
   const { t } = useTranslation();
 
-  const gapSentence = useMemo(() => {
-    if (!current) return "";
+  const gapQuestion = useMemo(() => {
+    if (!current) return { sentence: "", answer: "" };
     const source = current.sentences.find((sentence) =>
-      sentence.toLowerCase().includes(current.word.toLowerCase()),
+      makeGapQuestion(sentence, current.word).sentence !== sentence,
     ) ?? current.sentences[0];
-    return makeGapSentence(source, current.word);
+    return makeGapQuestion(source, current.word);
   }, [current]);
 
   function check() {
     if (!current) return;
-    setOutcome(isWordAnswerCorrect(answer, current.word));
+    setOutcome(isWordAnswerCorrect(answer, gapQuestion.answer));
   }
 
   async function continueTest() {
@@ -40,6 +43,16 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
     setBusy(true);
     try {
       await onResult(current, outcome, hintVisible);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function skipQuestion() {
+    if (!current) return;
+    setBusy(true);
+    try {
+      await onSkip(current);
     } finally {
       setBusy(false);
     }
@@ -78,14 +91,19 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
           </aside>
           <div>
             <p className="text-sm font-bold text-[var(--muted)]">{t("test.gapPrompt")}</p>
-            <blockquote className="font-display mt-4 text-2xl font-medium leading-relaxed sm:text-3xl">“{gapSentence}”</blockquote>
+            <blockquote className="font-display mt-4 text-2xl font-medium leading-relaxed sm:text-3xl">“{gapQuestion.sentence}”</blockquote>
             <p className="mt-3 text-sm text-[var(--muted)]">{t("test.hint", { meaning: current.chineseMeanings.join("；") })}</p>
             {isStageOneTest ? (
               <div className="mt-3">
                 {hintVisible ? (
-                  <p className="font-mono text-sm font-semibold tracking-wider text-[var(--violet)]" aria-live="polite">
-                    {t("test.spellingHint", { hint: getSpellingHint(current.word) })}
-                  </p>
+                  <div className="spelling-hint" aria-live="polite" aria-label={t("test.spellingHint", { hint: "" })}>
+                    <span>{t("test.spellingHintLabel")}</span>
+                    <span className="spelling-characters" aria-hidden="true">
+                      {getSpellingHintCharacters(gapQuestion.answer, answer).map((part, index) => (
+                        <span key={`${index}-${part.character}`} className={`spelling-character ${part.state}`}>{part.character}</span>
+                      ))}
+                    </span>
+                  </div>
                 ) : (
                   <Button type="button" variant="secondary" size="sm" onClick={() => setHintVisible(true)}>
                     {t("test.showSpellingHint")}
@@ -107,17 +125,23 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
                 placeholder={t("test.answerPlaceholder")}
                 required
               />
-              <button className="btn-primary" disabled={outcome !== null}>{t("test.check")}</button>
+              <div className="test-answer-actions">
+                <Button size="lg" disabled={outcome !== null || busy}>{t("test.check")}</Button>
+                <Button type="button" size="lg" variant="outline" disabled={outcome !== null || busy} onClick={() => void skipQuestion()}>{t("test.skipQuestion")}</Button>
+              </div>
             </form>
+            {outcome === null ? <p className="mt-2 text-xs text-[var(--muted)]">{t("test.skipQuestionHint")}</p> : null}
           </div>
         </div>
 
         {outcome !== null ? (
           <StageEvolutionResult
+            key={current.id}
             from={current.stage}
             to={resultStage}
             passed={outcome}
             word={current.word}
+            correctAnswer={gapQuestion.answer}
             evolves={mode === "formal" && resultStage !== current.stage}
             busy={busy}
             onContinue={continueTest}
@@ -128,23 +152,43 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
   );
 }
 
-function StageEvolutionResult({ from, to, passed, word, evolves, busy, onContinue }: {
+function StageEvolutionResult({ from, to, passed, word, correctAnswer, evolves, busy, onContinue }: {
   from: Stage;
   to: Stage;
   passed: boolean;
   word: string;
+  correctAnswer: string;
   evolves: boolean;
   busy: boolean;
   onContinue: () => void;
 }) {
   const { t } = useTranslation();
+  const [animationDone, setAnimationDone] = useState(!evolves);
   const phoenixReached = evolves && to === 3;
+  const direction = to > from ? "upgrade" : "downgrade";
   return (
-    <div className={`evolution-result ${passed ? "correct" : "incorrect"} ${phoenixReached ? "phoenix-complete" : ""}`} role="status">
+    <Card className={`evolution-result ${passed ? "correct" : "incorrect"} ${phoenixReached ? "phoenix-complete" : ""} ${direction} ${animationDone ? "animation-done" : "animating"}`} role="status">
+      {evolves && !animationDone ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="evolution-skip"
+          aria-label={t("test.skipEvolution")}
+          title={t("test.skipEvolution")}
+          onClick={() => setAnimationDone(true)}
+        >
+          ×
+        </Button>
+      ) : null}
       <div className="evolution-visual" aria-hidden="true">
-        <StageMascot stage={from} size={84} />
-        {evolves ? <span>→</span> : null}
-        {evolves ? <StageMascot stage={to} size={96} /> : null}
+        <span className="evolution-from"><StageMascot stage={from} size={84} /></span>
+        {evolves ? <span className="evolution-arrow">→</span> : null}
+        {evolves ? (
+          <span className="evolution-to" onAnimationEnd={() => setAnimationDone(true)}>
+            <StageMascot stage={to} size={96} />
+          </span>
+        ) : null}
       </div>
       <div className="evolution-copy">
         <strong>{phoenixReached
@@ -162,11 +206,12 @@ function StageEvolutionResult({ from, to, passed, word, evolves, busy, onContinu
             : passed
               ? t("test.practiceCorrect")
               : t("test.incorrectEvolution", {
-                  word,
+                  word: correctAnswer,
                   stage: t("common.stageName", { stage: from, label: t(`stages.${from}.label`) }),
                 })}</p>
+        {!passed ? <SpeechButton text={correctAnswer} label={t("test.listenCorrectAnswer")} /> : null}
       </div>
-      <button className="btn-primary" onClick={onContinue} disabled={busy}>{busy ? t("common.saving") : t("test.continue")}</button>
-    </div>
+      <Button onClick={onContinue} disabled={busy}>{busy ? t("common.saving") : t("test.continue")}</Button>
+    </Card>
   );
 }
