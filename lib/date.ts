@@ -11,12 +11,18 @@ export function addDaysToTimestamp(timestamp: string, days: number): string {
   return date.toISOString();
 }
 
+export function addMinutesToTimestamp(timestamp: string, minutes: number): string {
+  return new Date(new Date(timestamp).getTime() + minutes * 60_000).toISOString();
+}
+
 export function isDue(timestamp: string, now = new Date()): boolean {
   return parseStoredDate(timestamp).getTime() <= now.getTime();
 }
 
-export function localDateKey(value: string): string {
-  return toLocalDate(parseStoredDate(value));
+export function localDateKey(value?: string): string {
+  if (!value) return "";
+  const date = parseStoredDate(value);
+  return Number.isNaN(date.getTime()) ? "" : toLocalDate(date);
 }
 
 export function formatStoredDate(value: string, language?: string): string {

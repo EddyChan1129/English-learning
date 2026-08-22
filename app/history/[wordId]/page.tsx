@@ -6,6 +6,8 @@ import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { SpeechButton } from "@/components/SpeechButton";
 import { StageBadge } from "@/components/StageBadge";
+import { StageMascot } from "@/components/StageMascot";
+import { StageProgress } from "@/components/StageProgress";
 import { useApp } from "@/components/AppProvider";
 import { EditWordForm } from "@/components/EditWordForm";
 import { formatStoredDate, formatStoredDateTime } from "@/lib/date";
@@ -52,7 +54,10 @@ export default function WordDetailPage() {
           {word.partsOfSpeech.length ? <div className="mt-3 flex flex-wrap gap-2">{word.partsOfSpeech.map((part) => <span key={part} className="part-chip">{t(`partsOfSpeech.${part}`)}</span>)}</div> : null}
         </div>
         <div className="detail-actions">
-          <StageBadge stage={word.stage} status={word.status} large />
+          <div className="detail-stage-identity">
+            <StageMascot stage={word.stage} size={150} />
+            <StageBadge stage={word.stage} status={word.status} large />
+          </div>
           <div>
             <button className="btn-secondary" onClick={() => setEditing((current) => !current)}>{editing ? t("common.cancel") : t("common.edit")}</button>
             <button className={word.status === "inactive" ? "btn-secondary" : "btn-danger"} onClick={toggleActive}>
@@ -66,21 +71,15 @@ export default function WordDetailPage() {
       {word.status === "inactive" ? <p className="inactive-note">{t("detail.inactiveNote")}</p> : null}
       {editing ? <EditWordForm word={word} onSave={saveChanges} onCancel={() => setEditing(false)} /> : null}
 
-      <section className={`stage-track ${editing ? "mt-6" : ""}`} aria-label={t("detail.progressLabel", { stage: word.stage })}>
-        {[1, 2, 3].map((pass) => (
-          <div key={pass} className={pass <= word.stage ? "complete" : ""}>
-            <span>{pass <= word.stage ? "✓" : pass}</span>
-            <strong>{t("detail.pass", { pass })}</strong>
-            <small>{pass <= word.stage ? t("common.complete") : pass === word.stage + 1 ? t("detail.next") : t("detail.waiting")}</small>
-          </div>
-        ))}
-      </section>
+      <div className={editing ? "mt-6" : ""}>
+        <StageProgress currentStage={word.stage} />
+      </div>
 
       <div className="mt-6 grid gap-6 md:grid-cols-[.65fr_1.35fr]">
         <section className="detail-panel">
           <h2>{t("detail.record")}</h2>
           <dl>
-            <DefinitionRow label={t("detail.currentStage")} value={t("detail.stageValue", { stage: word.stage })} />
+            <DefinitionRow label={t("detail.currentStage")} value={t("common.stageName", { stage: word.stage, label: t(`stages.${word.stage}.label`) })} />
             <DefinitionRow label={t("detail.status")} value={word.status === "mastered" ? t("common.mastered") : word.status === "inactive" ? t("common.inactive") : t("common.learning")} />
             <DefinitionRow label={t("detail.added")} value={formatStoredDate(word.createdAt, i18n.resolvedLanguage)} />
             <DefinitionRow

@@ -2,19 +2,23 @@
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { isWordAnswerCorrect, makeGapSentence } from "@/lib/test-helpers";
-import type { WordDocument } from "@/types";
+import { Button } from "@/components/ui/button";
+import { StageMascot } from "@/components/StageMascot";
+import { calculateTestUpdate } from "@/lib/spaced-repetition";
+import { getSpellingHint, isWordAnswerCorrect, makeGapSentence } from "@/lib/test-helpers";
+import type { Stage, WordDocument } from "@/types";
 
 type TestSessionProps = {
   words: WordDocument[];
   mode: "formal" | "random";
-  onResult: (word: WordDocument, passed: boolean) => void | Promise<void>;
+  onResult: (word: WordDocument, passed: boolean, usedHint: boolean) => void | Promise<void>;
 };
 
 export function TestSession({ words, mode, onResult }: TestSessionProps) {
   const current = words[0];
   const [answer, setAnswer] = useState("");
   const [outcome, setOutcome] = useState<boolean | null>(null);
+  const [hintVisible, setHintVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const { t } = useTranslation();
 
@@ -35,7 +39,7 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
     if (!current || outcome === null) return;
     setBusy(true);
     try {
-      await onResult(current, outcome);
+      await onResult(current, outcome, hintVisible);
     } finally {
       setBusy(false);
     }
@@ -51,6 +55,11 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
     );
   }
 
+  const isStageOneTest = mode === "formal" && current.stage === 0;
+  const resultStage = outcome === null || mode === "random"
+    ? current.stage
+    : calculateTestUpdate(current.stage, outcome, new Date(0).toISOString()).stage;
+
   return (
     <section className="card overflow-hidden">
       <div className="flex items-center justify-between border-b border-[var(--line)] bg-[#f1effb] px-6 py-4">
@@ -61,33 +70,103 @@ export function TestSession({ words, mode, onResult }: TestSessionProps) {
         <span className="stage-badge">{t(mode === "formal" ? "test.gapFill" : "test.noStage")}</span>
       </div>
       <div className="p-6 sm:p-9">
-        <p className="text-sm font-bold text-[var(--muted)]">{t("test.gapPrompt")}</p>
-        <blockquote className="font-display mt-4 text-2xl font-medium leading-relaxed sm:text-3xl">“{gapSentence}”</blockquote>
-        <p className="mt-3 text-sm text-[var(--muted)]">{t("test.hint", { meaning: current.chineseMeanings.join("；") })}</p>
+        <div className="test-question-layout">
+          <aside className={`test-stage-identity stage-${current.stage}`}>
+            <StageMascot stage={current.stage} size={150} />
+            <strong>{t("common.stageName", { stage: current.stage, label: t(`stages.${current.stage}.label`) })}</strong>
+            <small>{t(mode === "formal" ? "test.currentEvolution" : "test.practiceStage")}</small>
+          </aside>
+          <div>
+            <p className="text-sm font-bold text-[var(--muted)]">{t("test.gapPrompt")}</p>
+            <blockquote className="font-display mt-4 text-2xl font-medium leading-relaxed sm:text-3xl">“{gapSentence}”</blockquote>
+            <p className="mt-3 text-sm text-[var(--muted)]">{t("test.hint", { meaning: current.chineseMeanings.join("；") })}</p>
+            {isStageOneTest ? (
+              <div className="mt-3">
+                {hintVisible ? (
+                  <p className="font-mono text-sm font-semibold tracking-wider text-[var(--violet)]" aria-live="polite">
+                    {t("test.spellingHint", { hint: getSpellingHint(current.word) })}
+                  </p>
+                ) : (
+                  <Button type="button" variant="secondary" size="sm" onClick={() => setHintVisible(true)}>
+                    {t("test.showSpellingHint")}
+                  </Button>
+                )}
+              </div>
+            ) : null}
 
-        <form className="mt-7 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => {
-          event.preventDefault();
-          check();
-        }}>
-          <input
-            className="field flex-1"
-            value={answer}
-            onChange={(event) => setAnswer(event.target.value)}
-            disabled={outcome !== null}
-            autoFocus
-            placeholder={t("test.answerPlaceholder")}
-            required
-          />
-          <button className="btn-primary" disabled={outcome !== null}>{t("test.check")}</button>
-        </form>
+            <form className="mt-7 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => {
+              event.preventDefault();
+              check();
+            }}>
+              <input
+                className="field flex-1"
+                value={answer}
+                onChange={(event) => setAnswer(event.target.value)}
+                disabled={outcome !== null}
+                autoFocus
+                placeholder={t("test.answerPlaceholder")}
+                required
+              />
+              <button className="btn-primary" disabled={outcome !== null}>{t("test.check")}</button>
+            </form>
+          </div>
+        </div>
 
         {outcome !== null ? (
-          <div className={`mt-6 border p-4 ${outcome ? "border-[#8ed5b9] bg-[#effaf5] text-[var(--green)]" : "border-red-200 bg-red-50 text-red-700"}`} role="status">
-            <strong>{outcome ? t("test.correct") : t("test.incorrect", { word: current.word })}</strong>
-            <button className="btn-primary mt-3 block" onClick={continueTest} disabled={busy}>{busy ? t("common.saving") : t("test.continue")}</button>
-          </div>
+          <StageEvolutionResult
+            from={current.stage}
+            to={resultStage}
+            passed={outcome}
+            word={current.word}
+            evolves={mode === "formal" && resultStage !== current.stage}
+            busy={busy}
+            onContinue={continueTest}
+          />
         ) : null}
       </div>
     </section>
+  );
+}
+
+function StageEvolutionResult({ from, to, passed, word, evolves, busy, onContinue }: {
+  from: Stage;
+  to: Stage;
+  passed: boolean;
+  word: string;
+  evolves: boolean;
+  busy: boolean;
+  onContinue: () => void;
+}) {
+  const { t } = useTranslation();
+  const phoenixReached = evolves && to === 3;
+  return (
+    <div className={`evolution-result ${passed ? "correct" : "incorrect"} ${phoenixReached ? "phoenix-complete" : ""}`} role="status">
+      <div className="evolution-visual" aria-hidden="true">
+        <StageMascot stage={from} size={84} />
+        {evolves ? <span>→</span> : null}
+        {evolves ? <StageMascot stage={to} size={96} /> : null}
+      </div>
+      <div className="evolution-copy">
+        <strong>{phoenixReached
+          ? t("test.phoenixTitle")
+          : passed && evolves
+            ? t("test.evolutionTitle")
+            : passed ? t("test.correct") : t("test.practiceAgain")}</strong>
+        <p>{phoenixReached
+          ? t("test.phoenixDescription", { word })
+          : evolves
+            ? t("test.evolutionStep", {
+                from: t("common.stageName", { stage: from, label: t(`stages.${from}.label`) }),
+                to: t("common.stageName", { stage: to, label: t(`stages.${to}.label`) }),
+              })
+            : passed
+              ? t("test.practiceCorrect")
+              : t("test.incorrectEvolution", {
+                  word,
+                  stage: t("common.stageName", { stage: from, label: t(`stages.${from}.label`) }),
+                })}</p>
+      </div>
+      <button className="btn-primary" onClick={onContinue} disabled={busy}>{busy ? t("common.saving") : t("test.continue")}</button>
+    </div>
   );
 }

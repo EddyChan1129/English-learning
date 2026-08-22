@@ -1,5 +1,5 @@
 import type { Stage, WordDocument } from "@/types";
-import { addDaysToTimestamp } from "./date.ts";
+import { addDaysToTimestamp, addMinutesToTimestamp } from "./date.ts";
 
 export type TestUpdate = Pick<
   WordDocument,
@@ -12,10 +12,11 @@ export function calculateTestUpdate(
   testedAt: string,
 ): TestUpdate {
   if (!passed) {
+    const nextStage = Math.max(stage - 1, 0) as Stage;
     return {
-      stage,
-      status: stage === 3 ? "mastered" : "learning",
-      nextTestDate: addDaysToTimestamp(testedAt, 3),
+      stage: nextStage,
+      status: "learning",
+      nextTestDate: addMinutesToTimestamp(testedAt, 30),
       lastTestedAt: testedAt,
     };
   }

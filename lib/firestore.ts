@@ -1,8 +1,8 @@
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
+  getDocs,
   onSnapshot,
   runTransaction,
   setDoc,
@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase";
 import { calculateTestUpdate } from "./spaced-repetition";
+import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "./vocabulary";
 import { makeCopiedWord } from "./word-copy";
 import type { FriendDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
@@ -113,14 +114,14 @@ export function subscribeToWords(
           sentenceExplanations: data.sentenceExplanations ?? [],
         };
       })
-      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+      .sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
     onChange(words);
   }, onError);
 }
 
 export async function addWord(uid: string, input: NewWord) {
   const now = new Date().toISOString();
-  await addDoc(collection(requireDb(), "users", uid, "words"), {
+  await insertUniqueWord(uid, {
     ...input,
     stage: 0,
     status: "learning",
@@ -131,14 +132,77 @@ export async function addWord(uid: string, input: NewWord) {
 
 export async function copyFriendWord(uid: string, friendUid: string, source: WordDocument) {
   const now = new Date().toISOString();
-  await addDoc(
-    collection(requireDb(), "users", uid, "words"),
-    makeCopiedWord(source, friendUid, now, now),
-  );
+  await insertUniqueWord(uid, makeCopiedWord(source, friendUid, now, now));
 }
 
 export async function updateWord(uid: string, wordId: string, input: NewWord) {
-  await updateDoc(doc(requireDb(), "users", uid, "words", wordId), input);
+  const database = requireDb();
+  const normalizedWord = normalizeVocabularyKey(input.word);
+  if (!normalizedWord) throw new Error("invalid-word");
+  await assertNoDuplicateWord(uid, normalizedWord, wordId);
+
+  const wordReference = doc(database, "users", uid, "words", wordId);
+  const nextKeyReference = vocabularyKeyReference(uid, normalizedWord);
+  await runTransaction(database, async (transaction) => {
+    const wordSnapshot = await transaction.get(wordReference);
+    if (!wordSnapshot.exists()) throw new Error("This word no longer exists.");
+
+    const currentWord = wordSnapshot.data() as WordDocument;
+    const previousNormalizedWord = currentWord.normalizedWord ?? normalizeVocabularyKey(currentWord.word);
+    const previousKeyReference = vocabularyKeyReference(uid, previousNormalizedWord);
+    const [nextKeySnapshot, previousKeySnapshot] = await Promise.all([
+      transaction.get(nextKeyReference),
+      previousNormalizedWord === normalizedWord ? Promise.resolve(null) : transaction.get(previousKeyReference),
+    ]);
+    if (nextKeySnapshot.exists() && nextKeySnapshot.data().wordId !== wordId) {
+      throw new Error(DUPLICATE_VOCABULARY_ERROR);
+    }
+
+    if (previousKeySnapshot?.exists() && previousKeySnapshot.data().wordId === wordId) {
+      transaction.delete(previousKeyReference);
+    }
+    const normalizedWordKey = nextKeyReference.id;
+    transaction.set(nextKeyReference, { wordId, normalizedWord });
+    transaction.update(wordReference, { ...input, normalizedWord, normalizedWordKey });
+  });
+}
+
+type StoredWord = Omit<WordDocument, "id">;
+
+async function insertUniqueWord(uid: string, word: StoredWord) {
+  const database = requireDb();
+  const normalizedWord = normalizeVocabularyKey(word.word);
+  if (!normalizedWord) throw new Error("invalid-word");
+  await assertNoDuplicateWord(uid, normalizedWord);
+
+  const wordsReference = collection(database, "users", uid, "words");
+  const wordReference = doc(wordsReference);
+  const keyReference = vocabularyKeyReference(uid, normalizedWord);
+  await runTransaction(database, async (transaction) => {
+    const keySnapshot = await transaction.get(keyReference);
+    if (keySnapshot.exists()) throw new Error(DUPLICATE_VOCABULARY_ERROR);
+
+    transaction.set(wordReference, {
+      ...word,
+      normalizedWord,
+      normalizedWordKey: keyReference.id,
+    });
+    transaction.set(keyReference, { wordId: wordReference.id, normalizedWord });
+  });
+}
+
+async function assertNoDuplicateWord(uid: string, normalizedWord: string, excludedWordId?: string) {
+  const snapshot = await getDocs(collection(requireDb(), "users", uid, "words"));
+  const duplicateExists = snapshot.docs.some((item) =>
+    item.id !== excludedWordId
+      && normalizeVocabularyKey(String(item.data().word ?? "")) === normalizedWord,
+  );
+  if (duplicateExists) throw new Error(DUPLICATE_VOCABULARY_ERROR);
+}
+
+function vocabularyKeyReference(uid: string, normalizedWord: string) {
+  const safeKey = `key_${encodeURIComponent(normalizedWord)}`;
+  return doc(requireDb(), "users", uid, "vocabularyKeys", safeKey);
 }
 
 export async function setWordActive(uid: string, word: WordDocument, active: boolean) {
@@ -150,12 +214,16 @@ export async function recordTestResult(
   uid: string,
   wordId: string,
   passed: boolean,
+  usedHint = false,
 ) {
   const reference = doc(requireDb(), "users", uid, "words", wordId);
   await runTransaction(requireDb(), async (transaction) => {
     const snapshot = await transaction.get(reference);
     if (!snapshot.exists()) throw new Error("This word no longer exists.");
     const word = snapshot.data() as WordDocument;
-    transaction.update(reference, calculateTestUpdate(word.stage, passed, new Date().toISOString()));
+    transaction.update(reference, {
+      ...calculateTestUpdate(word.stage, passed, new Date().toISOString()),
+      lastTestUsedHint: usedHint,
+    });
   });
 }

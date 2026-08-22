@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useApp } from "@/components/AppProvider";
 import { StageBadge } from "@/components/StageBadge";
 import { formatStoredDate, formatStoredDateTime, localDateKey } from "@/lib/date";
+import { countNewWordsByLocalDate } from "@/lib/history";
 import { PARTS_OF_SPEECH, type PartOfSpeech, type WordDocument } from "@/types";
 
 type StatusFilter = "all" | "learning" | "mastered" | "inactive";
@@ -45,6 +46,7 @@ export default function HistoryPage() {
   }, [alphabeticalOrder, partFilter, query, stageFilter, statusFilter, words]);
 
   const visibleCount = groupedWords.reduce((total, [, dayWords]) => total + dayWords.length, 0);
+  const dailyNewWordCounts = useMemo(() => countNewWordsByLocalDate(words), [words]);
   const activeFilterCount = Number(partFilter !== "all") + Number(stageFilter !== "all");
 
   return (
@@ -85,7 +87,9 @@ export default function HistoryPage() {
             <span>{t("history.stageFilter")}</span>
             <select value={stageFilter} onChange={(event) => setStageFilter(event.target.value as StageFilter)}>
               <option value="all">{t("history.allStages")}</option>
-              {([0, 1, 2, 3] as const).map((stage) => <option key={stage} value={stage}>{t("common.stage", { stage })}</option>)}
+              {([0, 1, 2, 3] as const).map((stage) => (
+                <option key={stage} value={stage}>{t("common.stageName", { stage, label: t(`stages.${stage}.label`) })}</option>
+              ))}
             </select>
           </label>
           <label>
@@ -108,8 +112,12 @@ export default function HistoryPage() {
       {groupedWords.map(([date, dayWords]) => (
         <section className="history-day" key={date}>
           <header className="history-day-heading">
-            <time dateTime={date}>{formatStoredDate(date, i18n.resolvedLanguage)}</time>
-            <span>{t("history.wordsCount", { count: dayWords.length })}</span>
+            {date
+              ? <time dateTime={date}>{formatStoredDate(date, i18n.resolvedLanguage)}</time>
+              : <span>{t("history.unknownDate")}</span>}
+            <span>{date
+              ? t("history.newWordsCount", { count: dailyNewWordCounts.get(date) ?? 0 })
+              : t("history.unknownDateEntries", { count: dayWords.length })}</span>
           </header>
           <div className="word-grid">{dayWords.map((word) => <WordCard key={word.id} word={word} />)}</div>
         </section>

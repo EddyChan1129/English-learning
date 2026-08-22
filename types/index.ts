@@ -29,7 +29,10 @@ export interface WordDocument {
   status: WordStatus;
   nextTestDate: string;
   createdAt: string;
+  normalizedWord?: string;
+  normalizedWordKey?: string;
   lastTestedAt?: string;
+  lastTestUsedHint?: boolean;
   copiedFrom?: {
     userId: string;
     wordId: string;

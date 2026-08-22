@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { useApp } from "@/components/AppProvider";
 import { StageBadge } from "@/components/StageBadge";
 import { subscribeToFriendWords } from "@/lib/firestore";
+import { normalizeVocabularyKey } from "@/lib/vocabulary";
 import type { WordDocument } from "@/types";
 
 export default function FriendWordsPage() {
@@ -55,7 +56,9 @@ export default function FriendWordsPage() {
       {!loaded ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("friends.loadingWords")}</p> : null}
       {loaded && words.length === 0 ? <div className="empty-state mt-6"><strong>{t("friends.noSharedWords")}</strong><p>{t("friends.noSharedWordsHint")}</p></div> : null}
       {words.length ? <div className="shared-word-grid">{words.map((word) => {
-        const alreadyAdded = ownWords.some((item) => item.word.trim().toLowerCase() === word.word.trim().toLowerCase());
+        const alreadyAdded = ownWords.some((item) =>
+          normalizeVocabularyKey(item.word) === normalizeVocabularyKey(word.word),
+        );
         return (
           <article key={word.id} className="shared-word-card">
             <div className="flex items-start justify-between gap-3"><div><h2>{word.word}</h2><p>{word.chineseMeanings.join("；")}</p></div><StageBadge stage={word.stage} status={word.status} /></div>

@@ -21,6 +21,7 @@ import {
   updateWord,
 } from "@/lib/firestore";
 import { isDue } from "@/lib/date";
+import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "@/lib/vocabulary";
 import type { FriendDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 type AppContextValue = {
@@ -41,7 +42,7 @@ type AppContextValue = {
   copyFromFriend: (friendUid: string, word: WordDocument) => Promise<void>;
   editWord: (wordId: string, word: NewWord) => Promise<void>;
   setWordEnabled: (word: WordDocument, active: boolean) => Promise<void>;
-  saveTestResult: (word: WordDocument, passed: boolean) => Promise<void>;
+  saveTestResult: (word: WordDocument, passed: boolean, usedHint: boolean) => Promise<void>;
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -133,6 +134,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   async function createWord(word: NewWord) {
     if (!user) return;
+    const normalizedWord = normalizeVocabularyKey(word.word);
+    if (words.some((item) => normalizeVocabularyKey(item.word) === normalizedWord)) {
+      throw new Error(DUPLICATE_VOCABULARY_ERROR);
+    }
     await protectWrite(() => addWord(user.uid, word));
   }
 
@@ -143,13 +148,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   async function copyFromFriend(friendUid: string, word: WordDocument) {
     if (!user) return;
-    const alreadyAdded = words.some((item) => item.word.trim().toLowerCase() === word.word.trim().toLowerCase());
-    if (alreadyAdded) throw new Error("word-already-added");
+    const normalizedWord = normalizeVocabularyKey(word.word);
+    const alreadyAdded = words.some((item) => normalizeVocabularyKey(item.word) === normalizedWord);
+    if (alreadyAdded) throw new Error(DUPLICATE_VOCABULARY_ERROR);
     await protectWrite(() => copyFriendWord(user.uid, friendUid, word));
   }
 
   async function editWord(wordId: string, word: NewWord) {
     if (!user) return;
+    const normalizedWord = normalizeVocabularyKey(word.word);
+    if (words.some((item) => item.id !== wordId && normalizeVocabularyKey(item.word) === normalizedWord)) {
+      throw new Error(DUPLICATE_VOCABULARY_ERROR);
+    }
     await protectWrite(() => updateWord(user.uid, wordId, word));
   }
 
@@ -167,9 +177,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function saveTestResult(word: WordDocument, passed: boolean) {
+  async function saveTestResult(word: WordDocument, passed: boolean, usedHint: boolean) {
     if (!user) return;
-    await recordTestResult(user.uid, word.id, passed);
+    await recordTestResult(user.uid, word.id, passed, usedHint);
   }
 
   if (!isFirebaseConfigured) return <ConfigurationHelp />;

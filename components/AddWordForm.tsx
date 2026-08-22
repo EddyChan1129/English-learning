@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { isDuplicateVocabularyError } from "@/lib/vocabulary";
 import type { NewWord, PartOfSpeech } from "@/types";
 import { ChineseMeaningFields } from "./ChineseMeaningFields";
 import { SpeechButton } from "./SpeechButton";
@@ -60,8 +61,10 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
       setPartsOfSpeech([]);
       setCommonPhrases("");
       setSentences(EMPTY_SENTENCES());
-    } catch {
-      setError(t("add.saveError"));
+    } catch (saveError) {
+      setError(isDuplicateVocabularyError(saveError)
+        ? t("add.duplicateError", { word: word.trim() })
+        : t("add.saveError"));
     } finally {
       setBusy(false);
     }
@@ -127,7 +130,12 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
           </div>
         ))}
       </div>
-      {error ? <p role="alert" className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p> : null}
+      {error ? (
+        <div role="alert" className="fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-4 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm text-red-700 shadow-xl">
+          <span>{error}</span>
+          <button type="button" onClick={() => setError("")} aria-label={t("common.dismiss")}>×</button>
+        </div>
+      ) : null}
       <button className="btn-primary mt-6" disabled={busy}>{busy ? t("common.saving") : t("add.save")}</button>
     </form>
   );

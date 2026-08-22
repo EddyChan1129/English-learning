@@ -2,18 +2,20 @@
 
 import { useTranslation } from "react-i18next";
 import type { Stage, WordDocument } from "@/types";
+import { StageMascot } from "./StageMascot";
 
 export function StageBadge({ stage, status, large = false }: { stage: Stage; status: WordDocument["status"]; large?: boolean }) {
   const { t } = useTranslation();
-  const label = status === "inactive"
+  const statusLabel = status === "inactive"
     ? t("common.inactive")
-    : status === "mastered"
-      ? t("common.mastered")
-      : t("common.stage", { stage });
+    : status === "mastered" ? t("common.mastered") : "";
   return (
     <span className={`stage-badge ${status} ${large ? "large" : ""}`}>
-      <span className="stage-dots" aria-hidden="true">{[1, 2, 3].map((pass) => <i key={pass} className={pass <= stage ? "filled" : ""} />)}</span>
-      {label}
+      <StageMascot stage={stage} size={large ? 52 : 34} />
+      <span>
+        <strong>{t("common.stageName", { stage, label: t(`stages.${stage}.label`) })}</strong>
+        {statusLabel ? <small>{statusLabel}</small> : null}
+      </span>
     </span>
   );
 }

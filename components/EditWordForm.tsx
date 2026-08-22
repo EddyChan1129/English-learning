@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { isDuplicateVocabularyError } from "@/lib/vocabulary";
 import type { NewWord, PartOfSpeech, WordDocument } from "@/types";
 import { ChineseMeaningFields } from "./ChineseMeaningFields";
 import { SpeechButton } from "./SpeechButton";
@@ -57,8 +58,10 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
         partsOfSpeech,
         commonPhrases: commonPhrases.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
       });
-    } catch {
-      setError(t("detail.updateError"));
+    } catch (saveError) {
+      setError(isDuplicateVocabularyError(saveError)
+        ? t("add.duplicateError", { word: word.trim() })
+        : t("detail.updateError"));
     } finally {
       setBusy(false);
     }

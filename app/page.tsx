@@ -4,8 +4,11 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddWordForm } from "@/components/AddWordForm";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
+import { StageMascot } from "@/components/StageMascot";
+import { StageProgress } from "@/components/StageProgress";
 import { TargetForm } from "@/components/TargetForm";
 import { useApp } from "@/components/AppProvider";
+import type { Stage, WordDocument } from "@/types";
 
 export default function HomePage() {
   const { target, targetLoaded, words, saveLearningTarget, createWord, dueWords } = useApp();
@@ -30,15 +33,18 @@ export default function HomePage() {
 
   return (
     <div className="space-y-7 animate-rise">
-      <header className="home-heading flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5">
+      <header className="theme-hero">
         <div>
-          <p className="eyebrow">{t("home.eyebrow")}</p>
-          <h1 className="page-title">{t("home.title")}</h1>
-          <p className="mt-2 text-[var(--muted)]">{t("home.description")}</p>
+          <p className="eyebrow">{t("home.themeEyebrow")}</p>
+          <h1>{t("home.themeTitle")}</h1>
+          <strong>{t("home.themeLead")}</strong>
+          <p>{t("home.themeDescription")}</p>
+          <button className="text-button" onClick={() => setEditingTarget(true)}>{t("home.editTarget")}</button>
         </div>
-        <button className="desktop-edit-target text-button" onClick={() => setEditingTarget(true)}>{t("home.editTarget")}</button>
+        <StageMascot stage={3} size={260} className="theme-hero-mascot" />
       </header>
 
+      <StageProgress counts={countStages(words)} />
       <ProgressDashboard target={target} words={words} onEditTarget={() => setEditingTarget(true)} />
 
       <section className="home-learning-workspace">
@@ -59,6 +65,12 @@ export default function HomePage() {
       </section>
     </div>
   );
+}
+
+function countStages(words: WordDocument[]): Record<Stage, number> {
+  const counts: Record<Stage, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
+  for (const word of words) counts[word.stage] += 1;
+  return counts;
 }
 
 function PageLoading() {

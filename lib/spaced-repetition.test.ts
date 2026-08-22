@@ -18,11 +18,13 @@ test("advances through all three successful passes", () => {
   });
 });
 
-test("failure keeps the current stage and schedules three days later", () => {
+test("failure drops one stage and schedules another test thirty minutes later", () => {
   assert.deepEqual(calculateTestUpdate(2, false, "2026-08-19T10:11:12.000Z"), {
-    stage: 2,
+    stage: 1,
     status: "learning",
-    nextTestDate: "2026-08-22T10:11:12.000Z",
+    nextTestDate: "2026-08-19T10:41:12.000Z",
     lastTestedAt: "2026-08-19T10:11:12.000Z",
   });
+  assert.equal(calculateTestUpdate(0, false, "2026-08-19T10:11:12.000Z").stage, 0);
+  assert.equal(calculateTestUpdate(3, false, "2026-08-19T10:11:12.000Z").stage, 2);
 });
