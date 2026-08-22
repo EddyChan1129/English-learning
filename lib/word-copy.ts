@@ -10,6 +10,7 @@ export function makeCopiedWord(source: WordDocument, friendUid: string, nextTest
     sentenceExplanations: source.sentenceExplanations ?? [],
     partsOfSpeech: source.partsOfSpeech,
     commonPhrases: source.commonPhrases,
+    categories: [],
     stage: 0 as const,
     status: "learning" as const,
     nextTestDate: nextTestAt,

@@ -7,7 +7,6 @@ import { usePathname } from "next/navigation";
 import { signOut, type User } from "firebase/auth";
 import { useTranslation } from "react-i18next";
 import { auth } from "@/lib/firebase";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { LearningPlan } from "@/types";
 
@@ -77,7 +76,9 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
         </nav>
 
         <div className="account-menu">
-          <LanguageSwitcher />
+          <Link href="/settings" className={`settings-link ${pathname.startsWith("/settings") ? "active" : ""}`} aria-current={pathname.startsWith("/settings") ? "page" : undefined}>
+            <span aria-hidden="true">⚙</span>{t("nav.settings")}
+          </Link>
           <span title={user.email ?? "Account"}>{user.email?.split("@")[0]}</span>
           <button onClick={signUserOut}>{t("nav.signOut")}</button>
         </div>
@@ -122,7 +123,9 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
             </nav>
             <div className="mobile-account-row">
               <div><small>{t("nav.account")}</small><strong>{user.email?.split("@")[0]}</strong></div>
-              <LanguageSwitcher />
+              <Link href="/settings" className={`settings-link ${pathname.startsWith("/settings") ? "active" : ""}`} aria-current={pathname.startsWith("/settings") ? "page" : undefined} onClick={() => setMenuOpen(false)}>
+                <span aria-hidden="true">⚙</span>{t("nav.settings")}
+              </Link>
             </div>
             <button className="mobile-sign-out" onClick={signUserOut}>{t("nav.signOut")}</button>
           </div>

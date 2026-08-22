@@ -1,20 +1,21 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { PARTS_OF_SPEECH, type PartOfSpeech } from "@/types";
 
 type WordMetadataFieldsProps = {
   selected: PartOfSpeech[];
+  languageName: string;
   onSelectedChange: (parts: PartOfSpeech[]) => void;
-  commonPhrases: string;
-  onCommonPhrasesChange: (value: string) => void;
+  children?: ReactNode;
 };
 
 export function WordMetadataFields({
   selected,
+  languageName,
   onSelectedChange,
-  commonPhrases,
-  onCommonPhrasesChange,
+  children,
 }: WordMetadataFieldsProps) {
   const { t } = useTranslation();
 
@@ -28,7 +29,7 @@ export function WordMetadataFields({
     <div className="word-metadata-fields">
       <fieldset>
         <legend>
-          {t("add.partsOfSpeech")}
+          {t("add.partsOfSpeech", { language: languageName })}
           <RequiredMark />
         </legend>
         <p>{t("add.partsOfSpeechHint")}</p>
@@ -41,19 +42,35 @@ export function WordMetadataFields({
           ))}
         </div>
       </fieldset>
+      {children}
+    </div>
+  );
+}
 
-      <div className="desktop-common-phrases">
+export function AdvancedWordFields({ synonyms, onSynonymsChange, commonPhrases, onCommonPhrasesChange }: {
+  synonyms: string;
+  onSynonymsChange: (value: string) => void;
+  commonPhrases: string;
+  onCommonPhrasesChange: (value: string) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <details className="advanced-word-fields">
+      <summary>
+        <span>{t("add.advanced")}</span>
+        <small>{t("add.advancedHint")}</small>
+      </summary>
+      <div className="advanced-word-fields-content">
+        <label className="block text-sm font-bold">
+          <span className="field-label-row">
+            <span>{t("add.synonyms")} <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span></span>
+            <span className="optional-badge">{t("add.optional")}</span>
+          </span>
+          <input className="field mt-2" value={synonyms} onChange={(event) => onSynonymsChange(event.target.value)} placeholder="was once, formerly" />
+        </label>
         <CommonPhrasesField value={commonPhrases} onChange={onCommonPhrasesChange} />
       </div>
-
-      <details className="mobile-common-phrases">
-        <summary>
-          <span>{t("add.commonPhrases")}</span>
-          <small className="optional-badge">{t("add.optional")}</small>
-        </summary>
-        <CommonPhrasesField value={commonPhrases} onChange={onCommonPhrasesChange} compact />
-      </details>
-    </div>
+    </details>
   );
 }
 
@@ -62,16 +79,15 @@ export function RequiredMark() {
   return <span className="required-mark" aria-label={t("common.required")} title={t("common.required")}>*</span>;
 }
 
-function CommonPhrasesField({ value, onChange, compact = false }: {
+function CommonPhrasesField({ value, onChange }: {
   value: string;
   onChange: (value: string) => void;
-  compact?: boolean;
 }) {
   const { t } = useTranslation();
 
   return (
     <label className="block text-sm font-bold">
-      <span className={compact ? "sr-only" : "field-label-row"}>
+      <span className="field-label-row">
         <span>{t("add.commonPhrases")} <span className="font-normal text-[var(--muted)]">{t("add.onePerLine")}</span></span>
         <span className="optional-badge">{t("add.optional")}</span>
       </span>

@@ -3,13 +3,17 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isDuplicateVocabularyError } from "@/lib/vocabulary";
+import { getLanguageName } from "@/lib/languages";
+import { useApp } from "@/components/AppProvider";
 import type { NewWord, PartOfSpeech, WordDocument } from "@/types";
 import { ChineseMeaningFields } from "./ChineseMeaningFields";
 import { SpeechButton } from "./SpeechButton";
-import { RequiredMark, WordMetadataFields } from "./WordMetadataFields";
+import { VocabularyCategoryFields } from "./VocabularyCategoryFields";
+import { AdvancedWordFields, RequiredMark, WordMetadataFields } from "./WordMetadataFields";
 
-export function EditWordForm({ word: initialWord, onSave, onCancel }: {
+export function EditWordForm({ word: initialWord, categories, onSave, onCancel }: {
   word: WordDocument;
+  categories: string[];
   onSave: (word: NewWord) => Promise<void>;
   onCancel: () => void;
 }) {
@@ -18,13 +22,18 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
   const [synonyms, setSynonyms] = useState(initialWord.synonyms.join(", "));
   const [partsOfSpeech, setPartsOfSpeech] = useState<PartOfSpeech[]>(initialWord.partsOfSpeech);
   const [commonPhrases, setCommonPhrases] = useState(initialWord.commonPhrases.join("\n"));
+  const [selectedCategories, setSelectedCategories] = useState(initialWord.categories ?? []);
   const [sentences, setSentences] = useState(() => initialWord.sentences.map((sentence, index) => ({
     sentence,
     explanation: initialWord.sentenceExplanations[index] ?? "",
   })));
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const { t } = useTranslation();
+  const { languagePreferences } = useApp();
+  const { i18n, t } = useTranslation();
+  const learningLanguageName = getLanguageName(languagePreferences.learningLanguage, i18n.resolvedLanguage);
+  const explanationLanguageName = getLanguageName(languagePreferences.explanationLanguage, i18n.resolvedLanguage);
+  const availableCategories = [...new Set([...categories, ...(initialWord.categories ?? [])])].sort((a, b) => a.localeCompare(b));
 
   function updateSentence(index: number, field: "sentence" | "explanation", value: string) {
     setSentences((current) => current.map((entry, position) => position === index ? { ...entry, [field]: value } : entry));
@@ -37,8 +46,7 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
     const cleanSentences = sentences
       .map(({ sentence, explanation }) => ({ sentence: sentence.trim(), explanation: explanation.trim() }))
       .filter(({ sentence }) => sentence);
-    if (!cleanSynonyms.length) return setError(t("add.synonymError"));
-    if (!cleanChineseMeanings.length) return setError(t("add.chineseMeaningError"));
+    if (!cleanChineseMeanings.length) return setError(t("add.chineseMeaningError", { language: explanationLanguageName }));
     if (!partsOfSpeech.length) return setError(t("add.partsOfSpeechError"));
     if (cleanSentences.length < 2) return setError(t("add.minimumError"));
     if (!cleanSentences.some(({ sentence }) => sentence.toLowerCase().includes(word.trim().toLowerCase()))) {
@@ -57,6 +65,7 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
         sentenceExplanations: cleanSentences.map(({ explanation }) => explanation),
         partsOfSpeech,
         commonPhrases: commonPhrases.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
+        categories: selectedCategories,
       });
     } catch (saveError) {
       setError(isDuplicateVocabularyError(saveError)
@@ -74,14 +83,13 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
         {word.trim() ? <SpeechButton text={word} /> : null}
       </div>
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-bold">{t("add.targetWord")}<RequiredMark /><input className="field mt-2" required value={word} onChange={(event) => setWord(event.target.value)} /></label>
-        <ChineseMeaningFields values={chineseMeanings} onChange={setChineseMeanings} />
+        <label className="text-sm font-bold">{t("add.targetWord", { language: learningLanguageName })}<RequiredMark /><input className="field mt-2" required value={word} onChange={(event) => setWord(event.target.value)} /></label>
+        <ChineseMeaningFields values={chineseMeanings} languageName={explanationLanguageName} onChange={setChineseMeanings} />
       </div>
-      <label className="mt-4 block text-sm font-bold">
-        {t("add.synonyms")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span>
-        <input className="field mt-2" required value={synonyms} onChange={(event) => setSynonyms(event.target.value)} />
-      </label>
-      <WordMetadataFields selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
+      <WordMetadataFields selected={partsOfSpeech} languageName={learningLanguageName} onSelectedChange={setPartsOfSpeech}>
+        <VocabularyCategoryFields categories={availableCategories} selected={selectedCategories} onSelectedChange={setSelectedCategories} />
+      </WordMetadataFields>
+      <AdvancedWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
@@ -91,8 +99,8 @@ export function EditWordForm({ word: initialWord, onSave, onCancel }: {
           <div key={index} className="rounded-lg border border-[var(--line)] bg-[#fbfcff] p-3">
             <textarea className="field min-h-20 resize-y" required={index < 2} value={sentence} onChange={(event) => updateSentence(index, "sentence", event.target.value)} placeholder={t("add.sentence", { number: index + 1 })} aria-label={t("add.sentence", { number: index + 1 })} />
             <label className="mt-3 block text-sm font-bold">
-              {t("add.sentenceExplanation", { number: index + 1 })}
-              <input className="field mt-2" value={explanation} onChange={(event) => updateSentence(index, "explanation", event.target.value)} placeholder={t("add.sentenceExplanation", { number: index + 1 })} />
+              {t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })}
+              <input className="field mt-2" value={explanation} onChange={(event) => updateSentence(index, "explanation", event.target.value)} placeholder={t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })} />
             </label>
           </div>
         ))}

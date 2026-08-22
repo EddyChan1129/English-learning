@@ -1,34 +1,24 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddWordForm } from "@/components/AddWordForm";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { StageMascot } from "@/components/StageMascot";
 import { StageProgress } from "@/components/StageProgress";
 import { TargetForm } from "@/components/TargetForm";
 import { useApp } from "@/components/AppProvider";
 import type { Stage, WordDocument } from "@/types";
 
 export default function HomePage() {
-  const { target, targetLoaded, words, saveLearningTarget, createWord, dueWords } = useApp();
-  const [editingTarget, setEditingTarget] = useState(false);
+  const { target, targetLoaded, words, vocabularyCategories, saveLearningTarget, createWord, dueWords } = useApp();
   const { t } = useTranslation();
 
   if (!targetLoaded) return <PageLoading />;
 
-  if (!target || editingTarget) {
+  if (!target) {
     return (
       <div className="mx-auto max-w-2xl pt-8">
-        <TargetForm
-          initial={target}
-          onSave={async (nextTarget) => {
-            await saveLearningTarget(nextTarget);
-            setEditingTarget(false);
-          }}
-        />
+        <TargetForm onSave={saveLearningTarget} />
       </div>
     );
   }
@@ -37,17 +27,15 @@ export default function HomePage() {
     <div className="space-y-7 animate-rise">
       <Card className="theme-hero">
         <header className="theme-hero-copy">
-          <StageMascot stage={3} size={72} className="theme-hero-mascot" />
           <div>
             <p className="eyebrow">{t("home.themeEyebrow")}</p>
             <h1>{t("home.themeTitle")}</h1>
             <p>{t("home.themeLead")}</p>
           </div>
-          <Button variant="link" size="sm" onClick={() => setEditingTarget(true)}>{t("home.editTarget")}</Button>
         </header>
         <StageProgress counts={countStages(words)} />
       </Card>
-      <ProgressDashboard target={target} words={words} onEditTarget={() => setEditingTarget(true)} />
+      <ProgressDashboard target={target} words={words} />
 
       <section className="home-learning-workspace">
         <aside className="note-panel home-note-panel">
@@ -63,7 +51,7 @@ export default function HomePage() {
             {t("home.threePasses")}
           </p>
         </aside>
-        <AddWordForm onAdd={createWord} />
+        <AddWordForm onAdd={createWord} categories={vocabularyCategories} />
       </section>
     </div>
   );

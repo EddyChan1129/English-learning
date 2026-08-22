@@ -73,6 +73,7 @@ export function LearningPlanLibrary({ slug }: { slug: string }) {
         sentenceExplanations: entry.examples.map((example) => example.chinese),
         partsOfSpeech: entry.partsOfSpeech,
         commonPhrases: [],
+        categories: [],
         sourcePlan: { planId: plan.id, entryId: entry.id },
       });
       setLocallyAdded((current) => [...current, entry.id]);
@@ -129,10 +130,10 @@ export function LearningPlanLibrary({ slug }: { slug: string }) {
                       <div><dt>{t("mustLearn.englishDefinition")}</dt><dd>{entry.englishDefinition}</dd></div>
                       <div><dt>{t("mustLearn.chineseMeaning")}</dt><dd>{entry.chineseMeanings.join("、")}</dd></div>
                       <div><dt>{t("mustLearn.synonyms")}</dt><dd className="essential-synonyms">{entry.synonyms.map((synonym) => <Badge key={synonym}>{synonym}</Badge>)}</dd></div>
-                      <div><dt>{t("mustLearn.examples")}</dt><dd className="learning-examples">{entry.examples.map((example, index) => <div key={`${entry.id}-${index}`}><span><strong>{index + 1}.</strong> {example.english}</span><small>{example.chinese}</small><SpeechButton text={example.english} label={t("mustLearn.listenExample", { number: index + 1 })} /></div>)}</dd></div>
+                      <div><dt>{t("mustLearn.examples")}</dt><dd className="learning-examples">{entry.examples.map((example, index) => <div key={`${entry.id}-${index}`}><span><strong>{index + 1}.</strong> {example.english}</span><small>{example.chinese}</small><SpeechButton text={example.english} language="en-US" label={t("mustLearn.listenExample", { number: index + 1 })} /></div>)}</dd></div>
                     </dl>
                     <div className="essential-actions">
-                      <SpeechButton text={entry.term} />
+                      <SpeechButton text={entry.term} language="en-US" />
                       <Button disabled={added || addingId === entry.id} onClick={() => void addEntry(entry)}>
                         {addingId === entry.id ? t("mustLearn.adding") : added ? t("mustLearn.added") : `＋ ${t("mustLearn.add")}`}
                       </Button>

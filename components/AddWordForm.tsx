@@ -3,23 +3,33 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { isDuplicateVocabularyError } from "@/lib/vocabulary";
+import { getLanguageName } from "@/lib/languages";
+import { useApp } from "@/components/AppProvider";
 import type { NewWord, PartOfSpeech } from "@/types";
 import { ChineseMeaningFields } from "./ChineseMeaningFields";
 import { SpeechButton } from "./SpeechButton";
-import { RequiredMark, WordMetadataFields } from "./WordMetadataFields";
+import { VocabularyCategoryFields } from "./VocabularyCategoryFields";
+import { AdvancedWordFields, RequiredMark, WordMetadataFields } from "./WordMetadataFields";
 
 const EMPTY_SENTENCES = () => Array.from({ length: 2 }, () => ({ sentence: "", explanation: "" }));
 
-export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void> }) {
+export function AddWordForm({ onAdd, categories }: {
+  onAdd: (word: NewWord) => Promise<void>;
+  categories: string[];
+}) {
   const [word, setWord] = useState("");
   const [chineseMeanings, setChineseMeanings] = useState([""]);
   const [synonyms, setSynonyms] = useState("");
   const [partsOfSpeech, setPartsOfSpeech] = useState<PartOfSpeech[]>([]);
   const [commonPhrases, setCommonPhrases] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sentences, setSentences] = useState(EMPTY_SENTENCES);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const { t } = useTranslation();
+  const { languagePreferences } = useApp();
+  const { i18n, t } = useTranslation();
+  const learningLanguageName = getLanguageName(languagePreferences.learningLanguage, i18n.resolvedLanguage);
+  const explanationLanguageName = getLanguageName(languagePreferences.explanationLanguage, i18n.resolvedLanguage);
 
   function updateSentence(index: number, field: "sentence" | "explanation", value: string) {
     setSentences((current) => current.map((entry, i) => i === index ? { ...entry, [field]: value } : entry));
@@ -32,8 +42,7 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
     const cleanSentences = sentences
       .map(({ sentence, explanation }) => ({ sentence: sentence.trim(), explanation: explanation.trim() }))
       .filter(({ sentence }) => sentence);
-    if (!cleanSynonyms.length) return setError(t("add.synonymError"));
-    if (!cleanChineseMeanings.length) return setError(t("add.chineseMeaningError"));
+    if (!cleanChineseMeanings.length) return setError(t("add.chineseMeaningError", { language: explanationLanguageName }));
     if (!partsOfSpeech.length) return setError(t("add.partsOfSpeechError"));
     if (cleanSentences.length < 2) return setError(t("add.minimumError"));
     const includesTargetWord = cleanSentences.some(({ sentence }) =>
@@ -54,12 +63,14 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
         sentenceExplanations: cleanSentences.map(({ explanation }) => explanation),
         partsOfSpeech,
         commonPhrases: commonPhrases.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
+        categories: selectedCategories,
       });
       setWord("");
       setChineseMeanings([""]);
       setSynonyms("");
       setPartsOfSpeech([]);
       setCommonPhrases("");
+      setSelectedCategories([]);
       setSentences(EMPTY_SENTENCES());
     } catch (saveError) {
       setError(isDuplicateVocabularyError(saveError)
@@ -81,25 +92,22 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
       </div>
       <div className="mt-7 grid gap-4 sm:grid-cols-2">
         <label className="text-sm font-bold">
-          {t("add.targetWord")}
+          {t("add.targetWord", { language: learningLanguageName })}
           <RequiredMark />
           <input
             className="field mt-4"
             required
             value={word}
             onChange={(event) => setWord(event.target.value)}
-            placeholder="used to be"
+            placeholder={t("add.targetPlaceholder", { language: learningLanguageName })}
           />
         </label>
-        <ChineseMeaningFields values={chineseMeanings} onChange={setChineseMeanings} />
+        <ChineseMeaningFields values={chineseMeanings} languageName={explanationLanguageName} onChange={setChineseMeanings} />
       </div>
-      <label className="mt-4 block text-sm font-bold">
-        {t("add.synonyms")}
-        <RequiredMark />
-        <span className="font-normal text-[var(--muted)]"> {t("add.commaSeparated")}</span>
-        <input className="field mt-2" required value={synonyms} onChange={(event) => setSynonyms(event.target.value)} placeholder="was once, formerly" />
-      </label>
-      <WordMetadataFields selected={partsOfSpeech} onSelectedChange={setPartsOfSpeech} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
+      <WordMetadataFields selected={partsOfSpeech} languageName={learningLanguageName} onSelectedChange={setPartsOfSpeech}>
+        <VocabularyCategoryFields categories={categories} selected={selectedCategories} onSelectedChange={setSelectedCategories} />
+      </WordMetadataFields>
+      <AdvancedWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
       <div className="mt-4 space-y-3">
         <div className="sentence-fields-heading flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
@@ -119,12 +127,12 @@ export function AddWordForm({ onAdd }: { onAdd: (word: NewWord) => Promise<void>
               {sentence ? <SpeechButton text={sentence} label="" /> : null}
             </div>
             <label className="mt-3 block text-sm font-bold">
-              {t("add.sentenceExplanation", { number: index + 1 })}
+              {t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })}
               <input
                 className="field mt-2"
                 value={explanation}
                 onChange={(event) => updateSentence(index, "explanation", event.target.value)}
-                placeholder={t("add.sentenceExplanation", { number: index + 1 })}
+                placeholder={t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })}
               />
             </label>
           </div>

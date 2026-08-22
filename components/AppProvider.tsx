@@ -9,13 +9,17 @@ import { auth, isFirebaseConfigured } from "@/lib/firebase";
 import i18n from "@/lib/i18n";
 import {
   addFriend,
+  addVocabularyCategory,
   addWord,
   copyFriendWord,
   ensureUserProfile,
   loadLearningPlans,
+  loadLanguagePreferences,
   loadTarget,
+  loadVocabularyCategories,
   recordTestResult,
   saveTarget,
+  saveLanguagePreferences,
   setWordActive,
   subscribeToFriends,
   subscribeToWords,
@@ -24,7 +28,8 @@ import {
 import { isDue } from "@/lib/date";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "@/lib/vocabulary";
 import { FALLBACK_LEARNING_PLANS } from "@/lib/learning-plans";
-import type { FriendDocument, LearningPlan, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
+import { DEFAULT_LANGUAGE_PREFERENCES } from "@/lib/languages";
+import type { FriendDocument, LanguagePreferences, LearningPlan, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 type AppContextValue = {
   user: User;
@@ -36,12 +41,17 @@ type AppContextValue = {
   targetLoaded: boolean;
   words: WordDocument[];
   wordsLoaded: boolean;
+  vocabularyCategories: string[];
+  languagePreferences: LanguagePreferences;
+  languagePreferencesLoaded: boolean;
   learningPlans: LearningPlan[];
   learningPlansLoaded: boolean;
   savingWord: boolean;
   dueWords: WordDocument[];
   saveLearningTarget: (target: UserTarget) => Promise<void>;
   createWord: (word: NewWord) => Promise<void>;
+  createVocabularyCategory: (name: string) => Promise<string>;
+  updateLanguagePreferences: (preferences: LanguagePreferences) => Promise<void>;
   addFriendByCode: (friendCode: string) => Promise<FriendDocument>;
   copyFromFriend: (friendUid: string, word: WordDocument) => Promise<void>;
   editWord: (wordId: string, word: NewWord) => Promise<void>;
@@ -62,6 +72,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [targetLoaded, setTargetLoaded] = useState(false);
   const [words, setWords] = useState<WordDocument[]>([]);
   const [wordsLoaded, setWordsLoaded] = useState(false);
+  const [vocabularyCategories, setVocabularyCategories] = useState<string[]>([]);
+  const [languagePreferences, setLanguagePreferences] = useState<LanguagePreferences>(DEFAULT_LANGUAGE_PREFERENCES);
+  const [languagePreferencesLoaded, setLanguagePreferencesLoaded] = useState(false);
   const [learningPlans, setLearningPlans] = useState<LearningPlan[]>(FALLBACK_LEARNING_PLANS);
   const [learningPlansLoaded, setLearningPlansLoaded] = useState(false);
   const [savingWord, setSavingWord] = useState(false);
@@ -91,6 +104,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setTargetLoaded(false);
         setWords([]);
         setWordsLoaded(false);
+        setVocabularyCategories([]);
+        setLanguagePreferences(DEFAULT_LANGUAGE_PREFERENCES);
+        setLanguagePreferencesLoaded(false);
         setLearningPlansLoaded(false);
       }
     });
@@ -110,6 +126,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       .then(setTarget)
       .catch(() => setError(getErrorMessage()))
       .finally(() => setTargetLoaded(true));
+    loadVocabularyCategories(user.uid)
+      .then(setVocabularyCategories)
+      .catch(() => setError(getErrorMessage()));
+    loadLanguagePreferences(user.uid)
+      .then(setLanguagePreferences)
+      .catch(() => setError(getErrorMessage()))
+      .finally(() => setLanguagePreferencesLoaded(true));
     const unsubscribeWords = subscribeToWords(
       user.uid,
       (nextWords) => {
@@ -150,6 +173,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       throw new Error(DUPLICATE_VOCABULARY_ERROR);
     }
     await protectWrite(() => addWord(user.uid, word));
+  }
+
+  async function createVocabularyCategory(name: string) {
+    if (!user) throw new Error("not-signed-in");
+    const cleanName = name.trim().replace(/\s+/g, " ").slice(0, 40);
+    if (!cleanName) throw new Error("invalid-category");
+    const existing = vocabularyCategories.find((category) => category.localeCompare(cleanName, undefined, { sensitivity: "accent" }) === 0);
+    if (existing) return existing;
+    await protectWrite(() => addVocabularyCategory(user.uid, cleanName));
+    setVocabularyCategories((current) => [...current, cleanName].sort((a, b) => a.localeCompare(b)));
+    return cleanName;
+  }
+
+  async function updateLanguagePreferences(nextPreferences: LanguagePreferences) {
+    if (!user) return;
+    await protectWrite(() => saveLanguagePreferences(user.uid, nextPreferences));
+    setLanguagePreferences(nextPreferences);
   }
 
   async function addFriendByCode(friendCode: string) {
@@ -208,12 +248,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       targetLoaded,
       words,
       wordsLoaded,
+      vocabularyCategories,
+      languagePreferences,
+      languagePreferencesLoaded,
       learningPlans,
       learningPlansLoaded,
       savingWord,
       dueWords,
       saveLearningTarget,
       createWord,
+      createVocabularyCategory,
+      updateLanguagePreferences,
       addFriendByCode,
       copyFromFriend,
       editWord,

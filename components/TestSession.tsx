@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { StageMascot } from "@/components/StageMascot";
 import { SpeechButton } from "@/components/SpeechButton";
 import { calculateTestUpdate } from "@/lib/spaced-repetition";
+import { playEvolutionSound } from "@/lib/evolution-sounds";
 import { getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion } from "@/lib/test-helpers";
 import type { Stage, WordDocument } from "@/types";
 
@@ -23,7 +24,10 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   const [outcome, setOutcome] = useState<boolean | null>(null);
   const [hintVisible, setHintVisible] = useState(false);
   const [busy, setBusy] = useState(false);
+  const stopEvolutionSound = useRef<(() => void) | null>(null);
   const { t } = useTranslation();
+
+  useEffect(() => () => stopEvolutionSound.current?.(), []);
 
   const gapQuestion = useMemo(() => {
     if (!current) return { sentence: "", answer: "" };
@@ -35,11 +39,17 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
 
   function check() {
     if (!current) return;
-    setOutcome(isWordAnswerCorrect(answer, gapQuestion.answer));
+    const passed = isWordAnswerCorrect(answer, gapQuestion.answer);
+    setOutcome(passed);
+    stopEvolutionSound.current?.();
+    stopEvolutionSound.current = mode === "formal" && passed && current.stage < 3
+      ? playEvolutionSound((current.stage + 1) as Stage)
+      : null;
   }
 
   async function continueTest() {
     if (!current || outcome === null) return;
+    stopEvolutionSound.current?.();
     setBusy(true);
     try {
       await onResult(current, outcome, hintVisible);
@@ -144,6 +154,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
             correctAnswer={gapQuestion.answer}
             evolves={mode === "formal" && resultStage !== current.stage}
             busy={busy}
+            onSkipAnimation={() => stopEvolutionSound.current?.()}
             onContinue={continueTest}
           />
         ) : null}
@@ -152,7 +163,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   );
 }
 
-function StageEvolutionResult({ from, to, passed, word, correctAnswer, evolves, busy, onContinue }: {
+function StageEvolutionResult({ from, to, passed, word, correctAnswer, evolves, busy, onSkipAnimation, onContinue }: {
   from: Stage;
   to: Stage;
   passed: boolean;
@@ -160,6 +171,7 @@ function StageEvolutionResult({ from, to, passed, word, correctAnswer, evolves, 
   correctAnswer: string;
   evolves: boolean;
   busy: boolean;
+  onSkipAnimation: () => void;
   onContinue: () => void;
 }) {
   const { t } = useTranslation();
@@ -176,7 +188,10 @@ function StageEvolutionResult({ from, to, passed, word, correctAnswer, evolves, 
           className="evolution-skip"
           aria-label={t("test.skipEvolution")}
           title={t("test.skipEvolution")}
-          onClick={() => setAnimationDone(true)}
+          onClick={() => {
+            onSkipAnimation();
+            setAnimationDone(true);
+          }}
         >
           ×
         </Button>

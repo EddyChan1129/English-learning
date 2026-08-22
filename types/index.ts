@@ -15,6 +15,20 @@ export const PARTS_OF_SPEECH = [
 ] as const;
 export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number];
 
+export const PART_OF_SPEECH_ABBREVIATIONS: Record<PartOfSpeech, string> = {
+  noun: "N",
+  verb: "V",
+  adjective: "ADJ",
+  adverb: "ADV",
+  pronoun: "PRON",
+  preposition: "PREP",
+  conjunction: "CONJ",
+  interjection: "INTJ",
+  determiner: "DET",
+  auxiliaryVerb: "AUX",
+  phrasalVerb: "PHR.V",
+};
+
 export interface WordDocument {
   id: string;
   word: string;
@@ -25,6 +39,7 @@ export interface WordDocument {
   sentenceExplanations: string[];
   partsOfSpeech: PartOfSpeech[];
   commonPhrases: string[];
+  categories?: string[];
   stage: Stage;
   status: WordStatus;
   nextTestDate: string;
@@ -45,7 +60,7 @@ export interface WordDocument {
 
 export type NewWord = Pick<
   WordDocument,
-  "word" | "chineseMeaning" | "chineseMeanings" | "synonyms" | "sentences" | "sentenceExplanations" | "partsOfSpeech" | "commonPhrases"
+  "word" | "chineseMeaning" | "chineseMeanings" | "synonyms" | "sentences" | "sentenceExplanations" | "partsOfSpeech" | "commonPhrases" | "categories"
 > & Pick<WordDocument, "sourcePlan">;
 
 export interface LearningExample {
@@ -81,6 +96,13 @@ export interface UserTarget {
   targetWords: number;
   targetDays: number;
   startDate: string;
+}
+
+export type SupportedLanguageCode = "en-US" | "zh-HK" | "zh-CN" | "fr-FR" | "es-ES" | "de-DE" | "ja-JP" | "ko-KR";
+
+export interface LanguagePreferences {
+  learningLanguage: SupportedLanguageCode;
+  explanationLanguage: SupportedLanguageCode;
 }
 
 export interface UserProfile {

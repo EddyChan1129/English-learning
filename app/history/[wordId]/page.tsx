@@ -15,7 +15,7 @@ import type { NewWord } from "@/types";
 
 export default function WordDetailPage() {
   const { wordId } = useParams<{ wordId: string }>();
-  const { words, wordsLoaded, editWord, setWordEnabled } = useApp();
+  const { words, wordsLoaded, vocabularyCategories, editWord, setWordEnabled } = useApp();
   const [editing, setEditing] = useState(false);
   const [actionError, setActionError] = useState("");
   const { i18n, t } = useTranslation();
@@ -69,7 +69,7 @@ export default function WordDetailPage() {
 
       {actionError ? <p className="feedback error mt-5" role="alert">{actionError}</p> : null}
       {word.status === "inactive" ? <p className="inactive-note">{t("detail.inactiveNote")}</p> : null}
-      {editing ? <EditWordForm word={word} onSave={saveChanges} onCancel={() => setEditing(false)} /> : null}
+      {editing ? <EditWordForm word={word} categories={vocabularyCategories} onSave={saveChanges} onCancel={() => setEditing(false)} /> : null}
 
       <div className={editing ? "mt-6" : ""}>
         <StageProgress currentStage={word.stage} />

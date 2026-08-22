@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Newsreader } from "next/font/google";
+import Script from "next/script";
 import { AppProvider } from "@/components/AppProvider";
 import { I18nProvider } from "@/components/I18nProvider";
 import { siteUrl } from "@/lib/site";
@@ -50,7 +51,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#C9562F",
-  colorScheme: "light",
+  colorScheme: "light dark",
 };
 
 const structuredData = {
@@ -75,6 +76,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${sans.variable} ${display.variable}`}>
+        <Script id="restore-theme" strategy="beforeInteractive">
+          {`try{document.documentElement.dataset.theme=localStorage.getItem("fowl-to-phoenix.theme.v1")==="dark"?"dark":"light"}catch{document.documentElement.dataset.theme="light"}`}
+        </Script>
         <I18nProvider>
           <AppProvider>{children}</AppProvider>
         </I18nProvider>

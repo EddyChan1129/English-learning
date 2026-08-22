@@ -36,6 +36,7 @@ users/{userId}
   targetWords: number
   targetDays: number
   startDate: "YYYY-MM-DD"
+  vocabularyCategories: string[]
 
 users/{userId}/words/{wordId}
   word: string
@@ -46,6 +47,7 @@ users/{userId}/words/{wordId}
   sentenceExplanations: string[]
   partsOfSpeech: ("noun" | "verb" | "adjective" | ...)[]
   commonPhrases: string[]
+  categories?: string[]
   stage: 0 | 1 | 2 | 3
   status: "learning" | "mastered" | "inactive"
   nextTestDate: "ISO date-time"

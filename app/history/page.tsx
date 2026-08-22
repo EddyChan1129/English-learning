@@ -5,22 +5,24 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/components/AppProvider";
 import { StageBadge } from "@/components/StageBadge";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatStoredDate, formatStoredDateTime, localDateKey } from "@/lib/date";
-import { countNewWordsByLocalDate } from "@/lib/history";
-import { PARTS_OF_SPEECH, type PartOfSpeech, type WordDocument } from "@/types";
+import { compareHistoryWords, countNewWordsByLocalDate, type HistoryWordOrder } from "@/lib/history";
+import { PART_OF_SPEECH_ABBREVIATIONS, PARTS_OF_SPEECH, type PartOfSpeech, type WordDocument } from "@/types";
 
 type StatusFilter = "all" | "learning" | "mastered" | "inactive";
 type StageFilter = "all" | "0" | "1" | "2" | "3";
-type AlphabeticalOrder = "az" | "za";
 
 export default function HistoryPage() {
-  const { words, wordsLoaded } = useApp();
+  const { words, wordsLoaded, vocabularyCategories } = useApp();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [partFilter, setPartFilter] = useState<"all" | PartOfSpeech>("all");
   const [stageFilter, setStageFilter] = useState<StageFilter>("all");
-  const [alphabeticalOrder, setAlphabeticalOrder] = useState<AlphabeticalOrder>("az");
-  const { i18n, t } = useTranslation();
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [wordOrder, setWordOrder] = useState<HistoryWordOrder>("az");
+  const { t } = useTranslation();
 
   const groupedWords = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -28,14 +30,12 @@ export default function HistoryPage() {
       const matchesStatus = statusFilter === "all" || word.status === statusFilter;
       const matchesPart = partFilter === "all" || word.partsOfSpeech.includes(partFilter);
       const matchesStage = stageFilter === "all" || String(word.stage) === stageFilter;
+      const matchesCategory = categoryFilter === "all" || word.categories?.includes(categoryFilter);
       const matchesQuery = !normalizedQuery || `${word.word} ${word.chineseMeanings.join(" ")}`.toLowerCase().includes(normalizedQuery);
-      return matchesStatus && matchesPart && matchesStage && matchesQuery;
+      return matchesStatus && matchesPart && matchesStage && matchesCategory && matchesQuery;
     });
 
-    filtered.sort((a, b) => {
-      const comparison = a.word.localeCompare(b.word, "en", { sensitivity: "base" });
-      return alphabeticalOrder === "az" ? comparison : -comparison;
-    });
+    filtered.sort((a, b) => compareHistoryWords(a, b, wordOrder));
 
     const groups = new Map<string, WordDocument[]>();
     for (const word of filtered) {
@@ -43,11 +43,11 @@ export default function HistoryPage() {
       groups.set(date, [...(groups.get(date) ?? []), word]);
     }
     return [...groups.entries()].sort(([dateA], [dateB]) => dateB.localeCompare(dateA));
-  }, [alphabeticalOrder, partFilter, query, stageFilter, statusFilter, words]);
+  }, [categoryFilter, partFilter, query, stageFilter, statusFilter, wordOrder, words]);
 
   const visibleCount = groupedWords.reduce((total, [, dayWords]) => total + dayWords.length, 0);
   const dailyNewWordCounts = useMemo(() => countNewWordsByLocalDate(words), [words]);
-  const activeFilterCount = Number(partFilter !== "all") + Number(stageFilter !== "all");
+  const activeFilterCount = Number(partFilter !== "all") + Number(stageFilter !== "all") + Number(categoryFilter !== "all");
 
   return (
     <div className="animate-rise">
@@ -69,6 +69,8 @@ export default function HistoryPage() {
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("history.searchPlaceholder")} />
         </label>
       </div>
+
+      <CategoryToolbar categories={vocabularyCategories} selected={categoryFilter} onSelected={setCategoryFilter} />
 
       <details className="history-filter-panel">
         <summary>
@@ -93,36 +95,66 @@ export default function HistoryPage() {
             </select>
           </label>
           <label>
-            <span>{t("history.alphabeticalOrder")}</span>
-            <select value={alphabeticalOrder} onChange={(event) => setAlphabeticalOrder(event.target.value as AlphabeticalOrder)}>
+            <span>{t("history.wordOrder")}</span>
+            <select value={wordOrder} onChange={(event) => setWordOrder(event.target.value as HistoryWordOrder)}>
               <option value="az">{t("history.aToZ")}</option>
               <option value="za">{t("history.zToA")}</option>
+              <option value="part">{t("history.byWordType")}</option>
             </select>
           </label>
           <button type="button" className="btn-secondary" onClick={() => {
             setPartFilter("all");
             setStageFilter("all");
-            setAlphabeticalOrder("az");
+            setCategoryFilter("all");
+            setWordOrder("az");
           }}>{t("history.clearFilters")}</button>
         </div>
       </details>
 
       {!wordsLoaded ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("history.loading")}</p> : null}
       {wordsLoaded && visibleCount === 0 ? <EmptyHistory hasWords={words.length > 0} /> : null}
-      {groupedWords.map(([date, dayWords]) => (
-        <section className="history-day" key={date}>
-          <header className="history-day-heading">
-            {date
-              ? <time dateTime={date}>{formatStoredDate(date, i18n.resolvedLanguage)}</time>
-              : <span>{t("history.unknownDate")}</span>}
-            <span>{date
-              ? t("history.newWordsCount", { count: dailyNewWordCounts.get(date) ?? 0 })
-              : t("history.unknownDateEntries", { count: dayWords.length })}</span>
-          </header>
-          <div className="word-grid">{dayWords.map((word) => <WordCard key={word.id} word={word} />)}</div>
-        </section>
-      ))}
+      {groupedWords.map(([date, dayWords]) => <HistoryDay key={date} date={date} words={dayWords} newWordCount={dailyNewWordCounts.get(date) ?? 0} />)}
     </div>
+  );
+}
+
+function HistoryDay({ date, words, newWordCount }: { date: string; words: WordDocument[]; newWordCount: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const { i18n, t } = useTranslation();
+  const gridId = `history-day-${date || "legacy"}`;
+  const expandLabel = t(expanded ? "history.showLess" : "history.readMore", { count: words.length });
+  return (
+    <section className={`history-day ${expanded ? "expanded" : ""}`}>
+      <header className="history-day-heading">
+        {date ? <time dateTime={date}>{formatStoredDate(date, i18n.resolvedLanguage)}</time> : <span>{t("history.unknownDate")}</span>}
+        <span>{date ? t("history.newWordsCount", { count: newWordCount }) : t("history.unknownDateEntries", { count: words.length })}</span>
+      </header>
+      <div className="word-grid" id={gridId}>{words.map((word) => <WordCard key={word.id} word={word} />)}</div>
+      <div className="history-day-actions">
+        {words.length > 3 ? <Button className="history-expand-button wide" variant="ghost" aria-expanded={expanded} aria-controls={gridId} onClick={() => setExpanded((value) => !value)}>{expandLabel}</Button> : null}
+        {words.length > 2 ? <Button className="history-expand-button tablet" variant="ghost" aria-expanded={expanded} aria-controls={gridId} onClick={() => setExpanded((value) => !value)}>{expandLabel}</Button> : null}
+        {words.length > 1 ? <Button className="history-expand-button mobile" variant="ghost" aria-expanded={expanded} aria-controls={gridId} onClick={() => setExpanded((value) => !value)}>{expandLabel}</Button> : null}
+      </div>
+    </section>
+  );
+}
+
+function CategoryToolbar({ categories, selected, onSelected }: {
+  categories: string[];
+  selected: string;
+  onSelected: (category: string) => void;
+}) {
+  const { t } = useTranslation();
+
+  if (!categories.length) return null;
+
+  return (
+    <section className="category-toolbar" aria-label={t("categories.label")}>
+      <div className="category-filter-list">
+        <button type="button" className={selected === "all" ? "active" : ""} onClick={() => onSelected("all")}>{t("categories.all")}</button>
+        {categories.map((category) => <button type="button" key={category} className={selected === category ? "active" : ""} onClick={() => onSelected(category)}>{category}</button>)}
+      </div>
+    </section>
   );
 }
 
@@ -134,6 +166,10 @@ function WordCard({ word }: { word: WordDocument }) {
         <div className="min-w-0">
           <h2 className="font-display truncate text-3xl font-semibold">{word.word}</h2>
           <p className="mt-1 truncate text-sm text-[var(--muted)]">{word.chineseMeanings.join("；")}</p>
+          <div className="word-card-tags">
+            {word.partsOfSpeech.map((part) => <Badge key={part} className="word-type-badge" title={t(`partsOfSpeech.${part}`)}>{PART_OF_SPEECH_ABBREVIATIONS[part]}</Badge>)}
+            {word.categories?.map((category) => <Badge key={category} className="word-category-badge">{category}</Badge>)}
+          </div>
         </div>
         <span className="word-card-arrow" aria-hidden="true">↗</span>
       </div>

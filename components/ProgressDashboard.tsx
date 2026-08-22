@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { daysElapsed, isDue, toLocalDate } from "@/lib/date";
 import type { UserTarget, WordDocument } from "@/types";
 
-export function ProgressDashboard({ target, words, onEditTarget }: { target: UserTarget; words: WordDocument[]; onEditTarget: () => void }) {
+export function ProgressDashboard({ target, words }: { target: UserTarget; words: WordDocument[] }) {
   const { t } = useTranslation();
   const today = toLocalDate();
   const mastered = words.filter((word) => word.status === "mastered").length;
@@ -18,11 +18,13 @@ export function ProgressDashboard({ target, words, onEditTarget }: { target: Use
     <>
       <section className="progress-layout">
         <div className="progress-sheet">
-          <p className="eyebrow">{t("progress.target")}</p>
-          <p className="progress-number mt-5">
-            {Math.max(0, target.targetWords - mastered).toLocaleString()}
-            <small>{t("progress.remaining", { total: target.targetWords.toLocaleString() })}</small>
-          </p>
+          <div className="progress-target-summary">
+            <p className="eyebrow">{t("progress.target")}</p>
+            <p className="progress-number">
+              {Math.max(0, target.targetWords - mastered).toLocaleString()}
+              <small>{t("progress.remaining", { total: target.targetWords.toLocaleString() })}</small>
+            </p>
+          </div>
           <div className="progress-rows">
             <ProgressRow
               label={t("progress.wordsMastered")}
@@ -45,7 +47,6 @@ export function ProgressDashboard({ target, words, onEditTarget }: { target: Use
       <section className="mobile-progress-summary" aria-label={t("progress.summary")}>
         <div className="mobile-summary-heading">
           <p className="eyebrow">{t("progress.target")}</p>
-          <button className="text-button" onClick={onEditTarget}>{t("home.editTarget")}</button>
         </div>
         <div className="mobile-metrics">
           <Metric label={t("progress.wordsMastered")} value={`${mastered} / ${target.targetWords}`} />

@@ -1,4 +1,5 @@
 import {
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -16,7 +17,8 @@ import { db } from "./firebase";
 import { calculateTestUpdate } from "./spaced-repetition";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "./vocabulary";
 import { makeCopiedWord } from "./word-copy";
-import type { FriendDocument, LearningPlan, LearningPlanEntry, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
+import { normalizeLanguagePreferences } from "./languages";
+import type { FriendDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 function requireDb() {
   if (!db) throw new Error("Firebase is not configured.");
@@ -30,6 +32,27 @@ export async function saveTarget(uid: string, target: UserTarget) {
 export async function loadTarget(uid: string): Promise<UserTarget | null> {
   const snapshot = await getDoc(doc(requireDb(), "users", uid));
   return snapshot.exists() ? (snapshot.data() as UserTarget) : null;
+}
+
+export async function loadVocabularyCategories(uid: string): Promise<string[]> {
+  const snapshot = await getDoc(doc(requireDb(), "users", uid));
+  const categories = snapshot.data()?.vocabularyCategories;
+  return Array.isArray(categories)
+    ? categories.filter((category): category is string => typeof category === "string").sort((a, b) => a.localeCompare(b))
+    : [];
+}
+
+export async function addVocabularyCategory(uid: string, name: string) {
+  await setDoc(doc(requireDb(), "users", uid), { vocabularyCategories: arrayUnion(name) }, { merge: true });
+}
+
+export async function loadLanguagePreferences(uid: string): Promise<LanguagePreferences> {
+  const snapshot = await getDoc(doc(requireDb(), "users", uid));
+  return normalizeLanguagePreferences(snapshot.data()?.languagePreferences);
+}
+
+export async function saveLanguagePreferences(uid: string, preferences: LanguagePreferences) {
+  await setDoc(doc(requireDb(), "users", uid), { languagePreferences: preferences }, { merge: true });
 }
 
 export async function loadLearningPlans(): Promise<LearningPlan[]> {
@@ -135,6 +158,7 @@ export function subscribeToWords(
           chineseMeanings: data.chineseMeanings?.length ? data.chineseMeanings : [data.chineseMeaning].filter(Boolean),
           partsOfSpeech: data.partsOfSpeech ?? [],
           commonPhrases: data.commonPhrases ?? [],
+          categories: data.categories ?? [],
           sentenceExplanations: data.sentenceExplanations ?? [],
         };
       })
