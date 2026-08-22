@@ -313,6 +313,10 @@ const resources = {
                 empty: "Your vocabulary history is empty.",
                 changeSearch: "Try another search or filter.",
                 addFirst: "Add your first entry from Home.",
+                paginationLabel: "Vocabulary pages",
+                previousPage: "← Previous",
+                nextPage: "Next →",
+                pageStatus: "Page {{page}} of {{total}}",
       },
       categories: {
         label: "Personal categories",
@@ -355,6 +359,9 @@ const resources = {
                     "This word is paused and will not appear in daily tests. You can reactivate it at any time.",
                 updateError: "Could not update this word.",
                 statusError: "Could not change this word’s status.",
+                wordNavigation: "Browse vocabulary alphabetically",
+                previousWord: "Previous word",
+                nextWord: "Next word",
             },
             friends: {
                 eyebrow: "Shared wordbooks",
@@ -710,6 +717,10 @@ const resources = {
                 empty: "字詞紀錄仍是空白。",
                 changeSearch: "請嘗試其他搜尋字詞或篩選條件。",
                 addFirst: "到首頁加入第一個詞彙。",
+                paginationLabel: "字詞分頁",
+                previousPage: "← 上一頁",
+                nextPage: "下一頁 →",
+                pageStatus: "第 {{page}} / {{total}} 頁",
       },
       categories: {
         label: "個人分類",
@@ -752,6 +763,9 @@ const resources = {
                     "呢張字卡已經停用，唔會再出現喺每日測驗。你隨時可以重新啟用佢。",
                 updateError: "更新唔到呢張字卡。",
                 statusError: "更改唔到字卡狀態。",
+                wordNavigation: "按字母次序瀏覽詞彙",
+                previousWord: "上一個字",
+                nextWord: "下一個字",
             },
             friends: {
                 eyebrow: "共享詞彙簿",

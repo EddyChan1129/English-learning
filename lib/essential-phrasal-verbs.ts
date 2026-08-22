@@ -112,7 +112,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 10,
     "phrase": "Bring Up",
     "definition": "To carry or take something low to a higher place.",
-    "example": "Can you bring up that table from downstairsti",
+    "example": "Can you bring up that table from downstairs?",
     "chinese": "提起、帶上來",
     "synonyms": [
       "mention",
@@ -156,7 +156,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 14,
     "phrase": "Burn Down",
     "definition": "When fire is used to destroy something.",
-    "example": "Why did they burn down the abandoned amusement parkti",
+    "example": "Why did they burn down the abandoned amusement park?",
     "chinese": "燒毀",
     "synonyms": [
       "destroy by fire",
@@ -189,7 +189,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 17,
     "phrase": "Butt In",
     "definition": "To insert yourself into a conversation or event.",
-    "example": "I hate to butt in on your conversation, but did you say something about dragonsti",
+    "example": "I hate to butt in on your conversation, but did you say something about dragons?",
     "chinese": "插嘴",
     "synonyms": [
       "interrupt",
@@ -332,7 +332,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 30,
     "phrase": "Come About",
     "definition": "To happen or occur.",
-    "example": "How did this come aboutti",
+    "example": "How did this come about?",
     "chinese": "發生",
     "synonyms": [
       "happen",
@@ -365,7 +365,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 33,
     "phrase": "Come Down To",
     "definition": "To narrow down a situation.",
-    "example": "It’s come down to three contestants lef.",
+    "example": "It’s come down to three contestants left.",
     "chinese": "歸根結底",
     "synonyms": [
       "boil down to",
@@ -486,7 +486,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 44,
     "phrase": "Do Over",
     "definition": "To do again in a better way.",
-    "example": "Can I get a do over on that dateti",
+    "example": "Can I get a do-over on that date?",
     "chinese": "重做",
     "synonyms": [
       "redo",
@@ -1201,7 +1201,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 109,
     "phrase": "Mix Up",
     "definition": "To combine; to confuse; to upgrade or change.",
-    "example": "Can you mix up the batter for me while I make the frostingti",
+    "example": "Can you mix up the batter for me while I make the frosting?",
     "chinese": "混淆、混合",
     "synonyms": [
       "confuse",
@@ -1333,7 +1333,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 121,
     "phrase": "Print Out",
     "definition": "To create a paper copy.",
-    "example": "Can you print out that flyerti",
+    "example": "Can you print out that flyer?",
     "chinese": "列印",
     "synonyms": [
       "print",
@@ -1520,7 +1520,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 138,
     "phrase": "Run Into",
     "definition": "When two objects accidentally hit each other; to see someone you know unexpectedly; to have unexpected issues; to go inside quickly.",
-    "example": "Can you run into the store and grab some apples for me pleaseti",
+    "example": "Can you run into the store and grab some apples for me, please?",
     "chinese": "偶遇、撞上",
     "synonyms": [
       "encounter",
@@ -1839,7 +1839,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 167,
     "phrase": "Stop Over",
     "definition": "To visit for a moment; to stop quickly.",
-    "example": "Can you stop over at the store for some milk before you get hometi",
+    "example": "Can you stop over at the store for some milk before you get home?",
     "chinese": "中途停留",
     "synonyms": [
       "visit briefly",
@@ -2158,7 +2158,7 @@ export const ESSENTIAL_PHRASAL_VERBS: EssentialPhrasalVerb[] = [
     "id": 196,
     "phrase": "Use Up",
     "definition": "To exhaust the resources of something.",
-    "example": "Did you use up the last of the peanut butter yesterdayti",
+    "example": "Did you use up the last of the peanut butter yesterday?",
     "chinese": "用光",
     "synonyms": [
       "exhaust",

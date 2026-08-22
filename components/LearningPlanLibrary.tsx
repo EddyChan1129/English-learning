@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { loadLearningPlanEntries } from "@/lib/firestore";
-import { ESSENTIAL_PLAN_ID, essentialEntryToLearningPlanEntry, getFallbackPlan } from "@/lib/learning-plans";
+import { ESSENTIAL_PLAN_ID, getFallbackPlan } from "@/lib/learning-plans";
 import { isDuplicateVocabularyError, normalizeVocabularyKey } from "@/lib/vocabulary";
 import type { LearningPlanEntry } from "@/types";
 
@@ -31,6 +31,14 @@ export function LearningPlanLibrary({ slug }: { slug: string }) {
     const planId = plan.id;
     let cancelled = false;
     async function loadEntries() {
+      if (planId === ESSENTIAL_PLAN_ID) {
+        const [{ ESSENTIAL_PHRASAL_VERBS }, { essentialEntryToLearningPlanEntry }] = await Promise.all([
+          import("@/lib/essential-phrasal-verbs"),
+          import("@/lib/essential-learning-plan"),
+        ]);
+        if (!cancelled) setEntries(ESSENTIAL_PHRASAL_VERBS.map(essentialEntryToLearningPlanEntry));
+        return;
+      }
       try {
         const remoteEntries = await loadLearningPlanEntries(planId);
         if (remoteEntries.length) {
@@ -39,10 +47,6 @@ export function LearningPlanLibrary({ slug }: { slug: string }) {
         }
       } catch {
         // The bundled first course stays usable until catalogue rules/data are deployed.
-      }
-      if (planId === ESSENTIAL_PLAN_ID) {
-        const { ESSENTIAL_PHRASAL_VERBS } = await import("@/lib/essential-phrasal-verbs");
-        if (!cancelled) setEntries(ESSENTIAL_PHRASAL_VERBS.map(essentialEntryToLearningPlanEntry));
       }
     }
     void loadEntries().finally(() => { if (!cancelled) setLoading(false); });

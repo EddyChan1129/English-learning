@@ -2,6 +2,7 @@
 node_modules/
 .env*
 !.env.example
+*-firebase-adminsdk-*.json
 npm-debug.log*
 
 /.agents

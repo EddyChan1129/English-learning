@@ -1,10 +1,18 @@
 import type { Stage, WordDocument } from "@/types";
-import { addDaysToTimestamp, addMinutesToTimestamp } from "./date.ts";
+import { addDaysToTimestamp, addMinutesToTimestamp, isDue } from "./date.ts";
 
 export type TestUpdate = Pick<
   WordDocument,
   "stage" | "status" | "nextTestDate" | "lastTestedAt"
 >;
+
+export function isReadyForTest(
+  word: Pick<WordDocument, "stage" | "status" | "nextTestDate" | "lastTestedAt">,
+  now = new Date(),
+) {
+  if (word.status !== "learning") return false;
+  return isDue(word.nextTestDate, now) || (word.stage === 0 && !word.lastTestedAt);
+}
 
 export function calculateTestUpdate(
   stage: Stage,

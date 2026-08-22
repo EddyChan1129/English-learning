@@ -11,6 +11,7 @@ import { StageProgress } from "@/components/StageProgress";
 import { useApp } from "@/components/AppProvider";
 import { EditWordForm } from "@/components/EditWordForm";
 import { formatStoredDate, formatStoredDateTime } from "@/lib/date";
+import { compareHistoryWords } from "@/lib/history";
 import type { NewWord } from "@/types";
 
 export default function WordDetailPage() {
@@ -20,6 +21,10 @@ export default function WordDetailPage() {
   const [actionError, setActionError] = useState("");
   const { i18n, t } = useTranslation();
   const word = words.find((item) => item.id === wordId);
+  const orderedWords = [...words].sort((a, b) => compareHistoryWords(a, b, "az"));
+  const wordIndex = orderedWords.findIndex((item) => item.id === wordId);
+  const previousWord = orderedWords[wordIndex - 1];
+  const nextWord = orderedWords[wordIndex + 1];
 
   if (!wordsLoaded) return <p className="py-24 text-center text-sm text-[var(--muted)]">{t("detail.loading")}</p>;
   if (!word) return <WordNotFound />;
@@ -127,6 +132,11 @@ export default function WordDetailPage() {
           </section>
         </div>
       </div>
+
+      <nav className="word-detail-pagination" aria-label={t("detail.wordNavigation")}>
+        {previousWord ? <Link href={`/history/${previousWord.id}`}><span>{t("detail.previousWord")}</span><strong>← {previousWord.word}</strong></Link> : <span />}
+        {nextWord ? <Link href={`/history/${nextWord.id}`}><span>{t("detail.nextWord")}</span><strong>{nextWord.word} →</strong></Link> : <span />}
+      </nav>
     </article>
   );
 }

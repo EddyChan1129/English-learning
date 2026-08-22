@@ -1,7 +1,8 @@
 import { applicationDefault, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { ESSENTIAL_PHRASAL_VERBS } from "../lib/essential-phrasal-verbs.ts";
-import { ESSENTIAL_PLAN_ID, FALLBACK_LEARNING_PLANS, essentialEntryToLearningPlanEntry } from "../lib/learning-plans.ts";
+import { essentialEntryToLearningPlanEntry } from "../lib/essential-learning-plan.ts";
+import { ESSENTIAL_PLAN_ID, FALLBACK_LEARNING_PLANS } from "../lib/learning-plans.ts";
 
 const plan = FALLBACK_LEARNING_PLANS[0];
 const entries = ESSENTIAL_PHRASAL_VERBS.map(essentialEntryToLearningPlanEntry);

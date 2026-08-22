@@ -13,11 +13,15 @@ type TestMode = "formal" | "random";
 export default function TestPage() {
   const { dueWords, words, wordsLoaded, saveTestResult } = useApp();
   const [mode, setMode] = useState<TestMode>("formal");
-  const [randomWords, setRandomWords] = useState<WordDocument[]>([]);
+  const [randomWordIds, setRandomWordIds] = useState<string[]>([]);
   const { t } = useTranslation();
+  const testableWords = useMemo(() => words.filter((word) => word.status !== "inactive"), [words]);
+  const randomWords = useMemo(() => randomWordIds
+    .map((id) => testableWords.find((word) => word.id === id))
+    .filter((word): word is WordDocument => Boolean(word)), [randomWordIds, testableWords]);
 
   function startRandomTest() {
-    setRandomWords(shuffled(words));
+    setRandomWordIds(shuffled(testableWords.map((word) => word.id)));
     setMode("random");
   }
 
@@ -30,7 +34,7 @@ export default function TestPage() {
             <h1 className="page-title">{t("testPage.title")}</h1>
             <p className="mt-2 text-[var(--muted)]">{t(mode === "formal" ? "testPage.description" : "testPage.randomDescription")}</p>
           </div>
-          <span className="count-label">{t(mode === "formal" ? "testPage.due" : "testPage.allWords", { count: mode === "formal" ? dueWords.length : words.length })}</span>
+          <span className="count-label">{t(mode === "formal" ? "testPage.due" : "testPage.allWords", { count: mode === "formal" ? dueWords.length : testableWords.length })}</span>
         </div>
       </header>
 
@@ -44,15 +48,15 @@ export default function TestPage() {
       </section>
 
       {!wordsLoaded
-        ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("testPage.preparing")}</p>
-        : mode === "formal"
-          ? <FormalTestQueue initialWords={dueWords} words={words} onResult={saveTestResult} />
+          ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("testPage.preparing")}</p>
+          : mode === "formal"
+          ? <FormalTestQueue key={dueWords.map((word) => word.id).join("-")} initialWords={dueWords} words={words} onResult={saveTestResult} />
           : <TestSession
               key={`random-${randomWords[0]?.id ?? "empty"}`}
               mode="random"
               words={randomWords}
-              onSkip={() => setRandomWords((current) => rotateFirst(current))}
-              onResult={() => setRandomWords((current) => current.slice(1))}
+              onSkip={() => setRandomWordIds((current) => rotateFirst(current))}
+              onResult={() => setRandomWordIds((current) => current.slice(1))}
             />}
 
       <p className="mt-6 text-center text-sm text-[var(--muted)]">

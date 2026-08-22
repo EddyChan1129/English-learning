@@ -1,6 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateTestUpdate } from "./spaced-repetition.ts";
+import { calculateTestUpdate, isReadyForTest } from "./spaced-repetition.ts";
+
+test("makes every untested Stage 0 card available immediately", () => {
+  assert.equal(isReadyForTest({
+    stage: 0,
+    status: "learning",
+    nextTestDate: "2026-08-25T10:11:12.000Z",
+  }, new Date("2026-08-19T10:11:12.000Z")), true);
+});
+
+test("holds a failed Stage 0 card for thirty minutes before retrying", () => {
+  const failed = calculateTestUpdate(0, false, "2026-08-19T10:11:12.000Z");
+  assert.equal(isReadyForTest(failed, new Date("2026-08-19T10:40:12.000Z")), false);
+  assert.equal(isReadyForTest(failed, new Date("2026-08-19T10:41:12.000Z")), true);
+});
 
 test("advances through all three successful passes", () => {
   assert.deepEqual(calculateTestUpdate(0, true, "2026-08-19T10:11:12.000Z"), {

@@ -25,7 +25,7 @@ import {
   subscribeToWords,
   updateWord,
 } from "@/lib/firestore";
-import { isDue } from "@/lib/date";
+import { isReadyForTest } from "@/lib/spaced-repetition";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "@/lib/vocabulary";
 import { FALLBACK_LEARNING_PLANS } from "@/lib/learning-plans";
 import { DEFAULT_LANGUAGE_PREFERENCES } from "@/lib/languages";
@@ -79,6 +79,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [learningPlansLoaded, setLearningPlansLoaded] = useState(false);
   const [savingWord, setSavingWord] = useState(false);
   const [error, setError] = useState("");
+  const [dueClock, setDueClock] = useState(() => Date.now());
 
   useEffect(() => {
     if (!savingWord) return;
@@ -155,9 +156,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, [user]);
 
+  useEffect(() => {
+    const nextDueAt = words.reduce((next, word) => {
+      if (word.status !== "learning" || (word.stage === 0 && !word.lastTestedAt)) return next;
+      const time = new Date(word.nextTestDate).getTime();
+      return time > dueClock && time < next ? time : next;
+    }, Number.POSITIVE_INFINITY);
+    if (!Number.isFinite(nextDueAt)) return;
+    const timer = window.setTimeout(() => setDueClock(Date.now()), nextDueAt - Date.now() + 100);
+    return () => window.clearTimeout(timer);
+  }, [dueClock, words]);
+
   const dueWords = useMemo(
-    () => words.filter((word) => word.status === "learning" && isDue(word.nextTestDate)),
-    [words],
+    () => words.filter((word) => isReadyForTest(word, new Date(dueClock))),
+    [dueClock, words],
   );
 
   async function saveLearningTarget(nextTarget: UserTarget) {
