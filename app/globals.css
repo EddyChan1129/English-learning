@@ -398,6 +398,15 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .settings-card { display: flex; min-height: 8.5rem; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.25rem; box-shadow: 4px 4px 0 rgba(20, 33, 61, .07); }
 .settings-card h2 { font-family: var(--font-display), serif; font-size: 1.35rem; font-weight: 700; }
 .settings-card h2 + p { max-width: 28rem; margin-top: .25rem; color: var(--muted); font-size: .72rem; line-height: 1.5; }
+.settings-language-card { grid-column: 1 / -1; padding: 1.25rem; }
+.settings-language-card form { display: grid; grid-template-columns: minmax(12rem, .7fr) minmax(22rem, 1.3fr) auto; align-items: end; gap: 1rem 1.5rem; }
+.settings-language-card h2 { font-family: var(--font-display), serif; font-size: 1.35rem; font-weight: 700; }
+.settings-language-card h2 + p { margin-top: .25rem; color: var(--muted); font-size: .72rem; line-height: 1.5; }
+.settings-language-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.settings-language-fields label > span { display: block; margin-bottom: .35rem; color: var(--muted); font-size: .65rem; font-weight: 800; }
+.settings-language-fields select { width: 100%; min-height: 2.55rem; border: 1px solid var(--line); border-radius: .45rem; background: var(--panel); padding-inline: .7rem 1.8rem; color: var(--ink); font-size: .75rem; font-weight: 700; }
+.settings-language-actions { display: grid; justify-items: start; gap: .35rem; }
+.settings-language-actions span { color: var(--green); font-size: .65rem; font-weight: 800; white-space: nowrap; }
 .theme-switch { display: inline-grid; flex: none; grid-template-columns: auto auto 2.7rem; align-items: center; gap: .45rem; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); padding: .35rem .4rem .35rem .65rem; color: var(--ink); }
 .theme-switch > span { color: var(--gold); font-size: 1rem; }
 .theme-switch strong { font-size: .7rem; }
@@ -524,6 +533,8 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
   .progress-sheet { grid-template-columns: 1fr; gap: .8rem; padding: 1rem; }
   .progress-number small { display: inline; margin: 0 0 0 .4rem; }
   .progress-rows { border-top: 1px solid var(--line); border-left: 0; padding-top: .8rem; padding-left: 0; }
+  .settings-language-card form { grid-template-columns: minmax(12rem, .65fr) minmax(22rem, 1.35fr); }
+  .settings-language-actions { grid-column: 2; }
   .word-grid { grid-template-columns: repeat(2, 1fr); }
   .history-day:not(.expanded) .word-card:nth-child(n+3) { display: none; }
   .history-expand-button.wide { display: none; }
@@ -575,6 +586,9 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
   .category-toolbar-create input { min-width: 0; flex: 1; }
   .settings-grid { grid-template-columns: 1fr; }
   .settings-card { min-height: 0; align-items: start; }
+  .settings-language-card form, .settings-language-fields { grid-template-columns: 1fr; }
+  .settings-language-actions { grid-column: auto; }
+  .settings-language-actions, .settings-language-actions button { width: 100%; }
   .settings-categories-card { grid-column: auto; grid-template-columns: 1fr; }
   .settings-category-create, .settings-categories-card .category-error { grid-column: 1; }
   .settings-category-create { flex-direction: column; }

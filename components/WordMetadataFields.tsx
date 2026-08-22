@@ -66,7 +66,7 @@ export function AdvancedWordFields({ synonyms, onSynonymsChange, commonPhrases, 
             <span>{t("add.synonyms")} <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span></span>
             <span className="optional-badge">{t("add.optional")}</span>
           </span>
-          <input className="field mt-2" value={synonyms} onChange={(event) => onSynonymsChange(event.target.value)} placeholder="was once, formerly" />
+          <input className="field mt-2" value={synonyms} onChange={(event) => onSynonymsChange(event.target.value)} placeholder={t("add.synonymsPlaceholder")} />
         </label>
         <CommonPhrasesField value={commonPhrases} onChange={onCommonPhrasesChange} />
       </div>
