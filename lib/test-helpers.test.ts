@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getSpellingHint, getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, rotateFirst, shuffled } from "./test-helpers.ts";
+import { getSpellingHint, getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, shuffled } from "./test-helpers.ts";
 
 test("supports multi-word targets in gap-fill tests", () => {
   assert.equal(makeGapSentence("I used to be very shy.", "used to be"), "I _____ very shy.");
@@ -45,10 +45,4 @@ test("marks each hidden spelling position as the user types", () => {
     ["u:shown", "_:correct", "_:pending", "r:shown"],
   );
   assert.equal(getSpellingHintCharacters("user", "ux")[1].state, "incorrect");
-});
-
-test("defers a skipped question without losing it", () => {
-  assert.deepEqual(rotateFirst(["one", "two", "three"]), ["two", "three", "one"]);
-  assert.deepEqual(rotateFirst(["one"]), ["one"]);
-  assert.deepEqual(rotateFirst([]), []);
 });

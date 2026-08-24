@@ -20,9 +20,8 @@ export function calculateTestUpdate(
   testedAt: string,
 ): TestUpdate {
   if (!passed) {
-    const nextStage = Math.max(stage - 1, 0) as Stage;
     return {
-      stage: nextStage,
+      stage,
       status: "learning",
       nextTestDate: addMinutesToTimestamp(testedAt, 30),
       lastTestedAt: testedAt,

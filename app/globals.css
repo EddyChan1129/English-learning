@@ -309,6 +309,29 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .detail-panel { padding: 1.4rem; }
 
 .test-question-layout { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: 1.5rem; }
+.test-session-stack { display: grid; gap: .85rem; }
+.test-progress-ledger { border: 1px solid var(--line); background: rgba(255,255,255,.72); padding: .9rem 1rem; }
+.test-progress-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+.test-progress-heading > div { display: flex; align-items: baseline; gap: .7rem; }
+.test-progress-heading span, .test-progress-heading small { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .58rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.test-progress-heading strong { color: var(--ink); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 1.25rem; line-height: 1; }
+.test-progress-track { display: flex; flex-wrap: wrap; gap: .38rem; margin-top: .75rem; }
+.test-progress-track li { display: grid; width: 1.75rem; height: 1.75rem; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: var(--paper); color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .6rem; font-weight: 900; }
+.test-progress-track li.current { border: 2px solid var(--violet); background: #f1edff; color: var(--violet); box-shadow: 0 0 0 3px rgba(111,82,194,.1); }
+.test-progress-track li.correct { border-color: #53ad8a; background: #e9f8f1; color: #147657; }
+.test-progress-track li.incorrect { border-color: #d59e49; background: #fff3d9; color: #855816; }
+.upcoming-tests { margin-bottom: 1.5rem; border: 1px solid var(--line); border-left: 4px solid var(--violet); background: rgba(255,255,255,.64); padding: 1rem 1.15rem; }
+.upcoming-tests-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+.upcoming-tests-heading h2 { margin-top: .15rem; font-family: var(--font-display), serif; font-size: 1.35rem; }
+.upcoming-tests-heading > small { max-width: 17rem; color: var(--muted); font-size: .62rem; line-height: 1.5; text-align: right; }
+.upcoming-tests ol { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.25rem; margin-top: .7rem; }
+.upcoming-tests li { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: .7rem; border-top: 1px solid var(--line); padding-block: .65rem; }
+.upcoming-tests a { min-width: 0; color: inherit; text-decoration: none; }
+.upcoming-tests a:hover strong { color: var(--violet); text-decoration: underline; }
+.upcoming-tests strong, .upcoming-tests span { display: block; }
+.upcoming-tests strong { overflow: hidden; font-family: var(--font-display), serif; font-size: 1rem; text-overflow: ellipsis; white-space: nowrap; }
+.upcoming-tests span, .upcoming-tests time { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .54rem; font-weight: 750; }
+.upcoming-tests time { flex: none; text-align: right; }
 .test-stage-identity { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; border-right: 1px solid var(--line); padding-right: 1rem; text-align: center; }
 .test-stage-identity > .stage-mascot { width: 6rem; height: 6rem; }
 .test-stage-identity strong { margin-top: .45rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .65rem; }
@@ -475,6 +498,12 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 :root[data-theme="dark"] .feedback.error { background: #3b2025; color: #ffb4ba; }
 :root[data-theme="dark"] .evolution-result.incorrect { background: #382e1c; color: #f0ce90; }
 :root[data-theme="dark"] .evolution-result.phoenix-complete { background: linear-gradient(110deg, #352d1b, #3b231f); color: #ffd18c; }
+:root[data-theme="dark"] .test-progress-ledger,
+:root[data-theme="dark"] .upcoming-tests { background: rgba(23,31,47,.72); }
+:root[data-theme="dark"] .test-progress-track li { background: #20293a; }
+:root[data-theme="dark"] .test-progress-track li.current { border-color: #a994ff; background: #302750; color: #d6ccff; }
+:root[data-theme="dark"] .test-progress-track li.correct { border-color: #479b7d; background: #17392f; color: #a9efd5; }
+:root[data-theme="dark"] .test-progress-track li.incorrect { border-color: #ad7b34; background: #3a2e1a; color: #f2ce8c; }
 :root[data-theme="dark"] .theme-hero { border-color: #6c5632; background-image: linear-gradient(90deg, rgba(23,31,47,.96), rgba(23,31,47,.86)), url("/background.png"); }
 :root[data-theme="dark"] .stage-journey { background: rgba(23,31,47,.78); }
 :root[data-theme="dark"] .stage-journey-step.current .stage-journey-image { background: #332b1e; }
@@ -626,6 +655,7 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
   .stage-journey-step strong { font-size: .48rem; }
   .stage-journey-step::after { left: calc(100% - .1rem); width: .2rem; }
   .test-question-layout { grid-template-columns: 5.3rem minmax(0, 1fr); gap: 1rem; }
+  .upcoming-tests ol { grid-template-columns: 1fr; }
   .test-answer-actions { width: 100%; }
   .test-answer-actions > * { flex: 1; }
   .test-stage-identity { justify-content: start; padding-right: .8rem; }
@@ -662,6 +692,9 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
   .learning-examples > div { grid-template-columns: 1fr; }
   .learning-examples [data-slot="button"] { grid-column: 1; grid-row: auto; justify-self: start; }
   .test-question-layout { grid-template-columns: 4.6rem minmax(0, 1fr); }
+  .test-progress-heading, .upcoming-tests-heading { align-items: start; flex-direction: column; }
+  .test-progress-heading > small, .upcoming-tests-heading > small { text-align: left; }
+  .test-progress-track li { width: 1.65rem; height: 1.65rem; }
   .test-answer-actions { flex-direction: column; }
   .test-stage-identity > .stage-mascot { width: 4.25rem; height: 4.25rem; }
   .evolution-result { grid-template-areas: "visual copy" "action action"; grid-template-columns: auto minmax(0, 1fr); gap: .55rem .7rem; padding: .75rem; }

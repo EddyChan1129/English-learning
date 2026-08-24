@@ -157,7 +157,3 @@ export function shuffled<T>(items: T[], random = Math.random): T[] {
   }
   return result;
 }
-
-export function rotateFirst<T>(items: T[]): T[] {
-  return items.length > 1 ? [...items.slice(1), items[0]] : [...items];
-}

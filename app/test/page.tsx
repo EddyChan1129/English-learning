@@ -5,23 +5,29 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TestSession } from "@/components/TestSession";
 import { useApp } from "@/components/AppProvider";
-import { rotateFirst, shuffled } from "@/lib/test-helpers";
+import { formatStoredDateTime } from "@/lib/date";
+import { shuffled } from "@/lib/test-helpers";
 import type { WordDocument } from "@/types";
 
 type TestMode = "formal" | "random";
+type SessionResult = "correct" | "incorrect" | "skipped";
 
 export default function TestPage() {
   const { dueWords, words, wordsLoaded, saveTestResult } = useApp();
   const [mode, setMode] = useState<TestMode>("formal");
-  const [randomWordIds, setRandomWordIds] = useState<string[]>([]);
+  const [randomSession, setRandomSession] = useState<{ id: number; words: WordDocument[] }>({ id: 0, words: [] });
   const { t } = useTranslation();
   const testableWords = useMemo(() => words.filter((word) => word.status !== "inactive"), [words]);
-  const randomWords = useMemo(() => randomWordIds
-    .map((id) => testableWords.find((word) => word.id === id))
-    .filter((word): word is WordDocument => Boolean(word)), [randomWordIds, testableWords]);
+  const upcomingWords = useMemo(() => {
+    const dueIds = new Set(dueWords.map((word) => word.id));
+    return testableWords
+      .filter((word) => word.status === "learning" && !dueIds.has(word.id))
+      .toSorted((a, b) => Date.parse(a.nextTestDate) - Date.parse(b.nextTestDate))
+      .slice(0, 6);
+  }, [dueWords, testableWords]);
 
   function startRandomTest() {
-    setRandomWordIds(shuffled(testableWords.map((word) => word.id)));
+    setRandomSession((current) => ({ id: current.id + 1, words: shuffled(testableWords) }));
     setMode("random");
   }
 
@@ -47,17 +53,13 @@ export default function TestPage() {
         <p className="mt-3 text-xs text-[var(--muted)]">{t(mode === "formal" ? "testPage.formalModeDescription" : "testPage.randomModeDescription")}</p>
       </section>
 
+      {mode === "formal" ? <UpcomingTests words={upcomingWords} /> : null}
+
       {!wordsLoaded
-          ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("testPage.preparing")}</p>
-          : mode === "formal"
-          ? <FormalTestQueue key={dueWords.map((word) => word.id).join("-")} initialWords={dueWords} words={words} onResult={saveTestResult} />
-          : <TestSession
-              key={`random-${randomWords[0]?.id ?? "empty"}`}
-              mode="random"
-              words={randomWords}
-              onSkip={() => setRandomWordIds((current) => rotateFirst(current))}
-              onResult={() => setRandomWordIds((current) => current.slice(1))}
-            />}
+        ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("testPage.preparing")}</p>
+        : mode === "formal"
+          ? <TestQueue mode="formal" initialWords={dueWords} words={words} onResult={saveTestResult} />
+          : <TestQueue key={randomSession.id} mode="random" initialWords={randomSession.words} words={words} onResult={saveTestResult} />}
 
       <p className="mt-6 text-center text-sm text-[var(--muted)]">
         {t("testPage.prompt")} <Link href="/history" className="text-button">{t("testPage.openHistory")}</Link>
@@ -66,26 +68,85 @@ export default function TestPage() {
   );
 }
 
-function FormalTestQueue({ initialWords, words, onResult }: {
+function TestQueue({ mode, initialWords, words, onResult }: {
+  mode: TestMode;
   initialWords: WordDocument[];
   words: WordDocument[];
   onResult: (word: WordDocument, passed: boolean, usedHint: boolean) => Promise<void>;
 }) {
+  const [sessionIds] = useState(() => initialWords.map((word) => word.id));
   const [queueIds, setQueueIds] = useState(() => initialWords.map((word) => word.id));
+  const [results, setResults] = useState<Record<string, SessionResult>>({});
+  const wordsById = useMemo(() => new Map(words.map((word) => [word.id, word])), [words]);
   const queue = useMemo(() => queueIds
-    .map((id) => words.find((word) => word.id === id))
-    .filter((word): word is WordDocument => Boolean(word)), [queueIds, words]);
+    .map((id) => wordsById.get(id))
+    .filter((word): word is WordDocument => Boolean(word && word.status !== "inactive")), [queueIds, wordsById]);
+
+  async function complete(word: WordDocument, result: SessionResult, usedHint: boolean) {
+    if (mode === "formal") await onResult(word, result === "correct", usedHint);
+    setResults((current) => ({ ...current, [word.id]: result }));
+    setQueueIds((current) => current.filter((id) => id !== word.id));
+  }
 
   return (
-    <TestSession
-      key={`formal-${queue[0]?.id ?? "empty"}`}
-      mode="formal"
-      words={queue}
-      onSkip={() => setQueueIds((current) => rotateFirst(current))}
-      onResult={async (word, passed, usedHint) => {
-        await onResult(word, passed, usedHint);
-        setQueueIds((current) => current.filter((id) => id !== word.id));
-      }}
-    />
+    <div className="test-session-stack">
+      <TestProgress sessionIds={sessionIds} currentId={queue[0]?.id} results={results} wordsById={wordsById} />
+      <TestSession
+        key={`${mode}-${queue[0]?.id ?? "empty"}`}
+        mode={mode}
+        words={queue}
+        onSkip={(word) => complete(word, "skipped", false)}
+        onResult={(word, passed, usedHint) => complete(word, passed ? "correct" : "incorrect", usedHint)}
+      />
+    </div>
+  );
+}
+
+function TestProgress({ sessionIds, currentId, results, wordsById }: {
+  sessionIds: string[];
+  currentId?: string;
+  results: Record<string, SessionResult>;
+  wordsById: Map<string, WordDocument>;
+}) {
+  const { t } = useTranslation();
+  const position = currentId ? sessionIds.indexOf(currentId) + 1 : sessionIds.length;
+
+  return (
+    <section className="test-progress-ledger" aria-label={t("test.progressLabel")}>
+      <div className="test-progress-heading">
+        <div><span>{t("test.progressEyebrow")}</span><strong>{t("test.progressPosition", { current: position, total: sessionIds.length })}</strong></div>
+        <small>{t("test.progressLegend")}</small>
+      </div>
+      <ol className="test-progress-track">
+        {sessionIds.map((id, index) => {
+          const unavailable = !wordsById.get(id) || wordsById.get(id)?.status === "inactive";
+          const result = results[id] ?? (unavailable ? "skipped" : undefined);
+          const state = result === "correct" ? "correct" : result ? "incorrect" : id === currentId ? "current" : "pending";
+          const mark = state === "correct" ? "✓" : state === "incorrect" ? "×" : String(index + 1);
+          return <li key={id} className={state} aria-current={state === "current" ? "step" : undefined} aria-label={t(`test.progressState.${state}`, { number: index + 1 })}>{mark}</li>;
+        })}
+      </ol>
+    </section>
+  );
+}
+
+function UpcomingTests({ words }: { words: WordDocument[] }) {
+  const { i18n, t } = useTranslation();
+  if (!words.length) return null;
+  return (
+    <section className="upcoming-tests" aria-labelledby="upcoming-tests-title">
+      <div className="upcoming-tests-heading">
+        <div><span className="eyebrow">{t("testPage.upcomingEyebrow")}</span><h2 id="upcoming-tests-title">{t("testPage.upcomingTitle")}</h2></div>
+        <small>{t("testPage.upcomingDescription")}</small>
+      </div>
+      <ol>
+        {words.map((word) => (
+          <li key={word.id}>
+            <Link href={`/history/${word.id}`}><strong>{word.word}</strong><span>{t("common.stageName", { stage: word.stage, label: t(`stages.${word.stage}.label`) })}</span></Link>
+            <time dateTime={word.nextTestDate}>{formatStoredDateTime(word.nextTestDate, i18n.resolvedLanguage)}</time>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }

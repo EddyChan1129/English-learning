@@ -8,7 +8,7 @@ import { StageBadge } from "@/components/StageBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatStoredDateTime } from "@/lib/date";
-import { compareHistoryWords, type HistoryWordOrder } from "@/lib/history";
+import { compareHistoryWords, DEFAULT_HISTORY_WORD_ORDER, type HistoryWordOrder } from "@/lib/history";
 import { PART_OF_SPEECH_ABBREVIATIONS, PARTS_OF_SPEECH, type PartOfSpeech, type WordDocument } from "@/types";
 
 type StatusFilter = "all" | "learning" | "mastered" | "inactive";
@@ -22,7 +22,7 @@ export default function HistoryPage() {
   const [partFilter, setPartFilter] = useState<"all" | PartOfSpeech>("all");
   const [stageFilter, setStageFilter] = useState<StageFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [wordOrder, setWordOrder] = useState<HistoryWordOrder>("az");
+  const [wordOrder, setWordOrder] = useState<HistoryWordOrder>(DEFAULT_HISTORY_WORD_ORDER);
   const [page, setPage] = useState(1);
   const { t } = useTranslation();
 
@@ -98,13 +98,17 @@ export default function HistoryPage() {
               <option value="az">{t("history.aToZ")}</option>
               <option value="za">{t("history.zToA")}</option>
               <option value="part">{t("history.byWordType")}</option>
+              <option value="newest">{t("history.newestAdded")}</option>
+              <option value="oldest">{t("history.oldestAdded")}</option>
+              <option value="testSoonest">{t("history.testSoonest")}</option>
+              <option value="testLatest">{t("history.testLatest")}</option>
             </select>
           </label>
           <button type="button" className="btn-secondary" onClick={() => updateFilter(() => {
             setPartFilter("all");
             setStageFilter("all");
             setCategoryFilter("all");
-            setWordOrder("az");
+            setWordOrder(DEFAULT_HISTORY_WORD_ORDER);
           })}>{t("history.clearFilters")}</button>
         </div>
       </details>

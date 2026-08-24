@@ -60,10 +60,12 @@ type AppContextValue = {
 };
 
 const AppContext = createContext<AppContextValue | null>(null);
+const AUTH_READY_TIMEOUT_MS = 10_000;
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [authReady, setAuthReady] = useState(!auth);
+  const [authProblem, setAuthProblem] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [friends, setFriends] = useState<FriendDocument[]>([]);
@@ -93,7 +95,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!auth) return;
-    return onAuthStateChanged(auth, (nextUser) => {
+    const timeout = window.setTimeout(() => setAuthProblem(true), AUTH_READY_TIMEOUT_MS);
+    const unsubscribe = onAuthStateChanged(auth, (nextUser) => {
+      window.clearTimeout(timeout);
+      setAuthProblem(false);
       setUser(nextUser);
       setAuthReady(true);
       if (!nextUser) {
@@ -110,7 +115,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setLanguagePreferencesLoaded(false);
         setLearningPlansLoaded(false);
       }
+    }, () => {
+      window.clearTimeout(timeout);
+      setAuthProblem(true);
     });
+    return () => {
+      window.clearTimeout(timeout);
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -246,7 +258,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   if (!isFirebaseConfigured) return <ConfigurationHelp />;
-  if (!authReady) return <FullPageLoading />;
+  if (!authReady) return authProblem ? <AuthConnectionProblem /> : <FullPageLoading />;
   if (!user) return <AuthForm />;
 
   return (
@@ -301,6 +313,19 @@ export function useApp() {
 function FullPageLoading() {
   const { t } = useTranslation();
   return <main className="grid min-h-screen place-items-center"><p className="font-display text-2xl">{t("app.opening")}</p></main>;
+}
+
+function AuthConnectionProblem() {
+  const { t } = useTranslation();
+  return (
+    <main className="grid min-h-screen place-items-center px-5">
+      <section className="card max-w-md p-8 text-center">
+        <h1 className="font-display text-3xl font-semibold">{t("app.authTimeoutTitle")}</h1>
+        <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{t("app.authTimeoutDescription")}</p>
+        <button className="btn-primary mt-6" onClick={() => window.location.reload()}>{t("app.retryConnection")}</button>
+      </section>
+    </main>
+  );
 }
 
 function ErrorNotice({ message, onDismiss }: { message: string; onDismiss: () => void }) {

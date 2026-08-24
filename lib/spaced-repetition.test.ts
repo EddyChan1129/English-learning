@@ -32,13 +32,14 @@ test("advances through all three successful passes", () => {
   });
 });
 
-test("failure drops one stage and schedules another test thirty minutes later", () => {
+test("failure keeps every stage and schedules another test thirty minutes later", () => {
   assert.deepEqual(calculateTestUpdate(2, false, "2026-08-19T10:11:12.000Z"), {
-    stage: 1,
+    stage: 2,
     status: "learning",
     nextTestDate: "2026-08-19T10:41:12.000Z",
     lastTestedAt: "2026-08-19T10:11:12.000Z",
   });
-  assert.equal(calculateTestUpdate(0, false, "2026-08-19T10:11:12.000Z").stage, 0);
-  assert.equal(calculateTestUpdate(3, false, "2026-08-19T10:11:12.000Z").stage, 2);
+  for (const stage of [0, 1, 2, 3] as const) {
+    assert.equal(calculateTestUpdate(stage, false, "2026-08-19T10:11:12.000Z").stage, stage);
+  }
 });

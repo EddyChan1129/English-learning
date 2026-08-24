@@ -18,10 +18,12 @@ type TestSessionProps = {
   onSkip: (word: WordDocument) => void | Promise<void>;
 };
 
+type TestOutcome = "correct" | "incorrect" | "skipped" | null;
+
 export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps) {
   const current = words[0];
   const [answer, setAnswer] = useState("");
-  const [outcome, setOutcome] = useState<boolean | null>(null);
+  const [outcome, setOutcome] = useState<TestOutcome>(null);
   const [hintVisible, setHintVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const stopEvolutionSound = useRef<(() => void) | null>(null);
@@ -40,7 +42,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   function check() {
     if (!current) return;
     const passed = isWordAnswerCorrect(answer, gapQuestion.answer);
-    setOutcome(passed);
+    setOutcome(passed ? "correct" : "incorrect");
     stopEvolutionSound.current?.();
     stopEvolutionSound.current = mode === "formal" && passed && current.stage < 3
       ? playEvolutionSound((current.stage + 1) as Stage)
@@ -52,20 +54,17 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
     stopEvolutionSound.current?.();
     setBusy(true);
     try {
-      await onResult(current, outcome, hintVisible);
+      if (outcome === "skipped") await onSkip(current);
+      else await onResult(current, outcome === "correct", hintVisible);
     } finally {
       setBusy(false);
     }
   }
 
-  async function skipQuestion() {
+  function skipQuestion() {
     if (!current) return;
-    setBusy(true);
-    try {
-      await onSkip(current);
-    } finally {
-      setBusy(false);
-    }
+    stopEvolutionSound.current?.();
+    setOutcome("skipped");
   }
 
   if (!current) {
@@ -81,7 +80,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   const isStageOneTest = mode === "formal" && current.stage === 0;
   const resultStage = outcome === null || mode === "random"
     ? current.stage
-    : calculateTestUpdate(current.stage, outcome, new Date(0).toISOString()).stage;
+    : calculateTestUpdate(current.stage, outcome === "correct", new Date(0).toISOString()).stage;
 
   return (
     <section className="card overflow-hidden">
@@ -137,7 +136,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
               />
               <div className="test-answer-actions">
                 <Button size="lg" disabled={outcome !== null || busy}>{t("test.check")}</Button>
-                <Button type="button" size="lg" variant="outline" disabled={outcome !== null || busy} onClick={() => void skipQuestion()}>{t("test.skipQuestion")}</Button>
+                <Button type="button" size="lg" variant="outline" disabled={outcome !== null || busy} onClick={skipQuestion}>{t("test.skipQuestion")}</Button>
               </div>
             </form>
             {outcome === null ? <p className="mt-2 text-xs text-[var(--muted)]">{t("test.skipQuestionHint")}</p> : null}
@@ -149,10 +148,11 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
             key={current.id}
             from={current.stage}
             to={resultStage}
-            passed={outcome}
+            passed={outcome === "correct"}
+            skipped={outcome === "skipped"}
             word={current.word}
             correctAnswer={gapQuestion.answer}
-            evolves={mode === "formal" && resultStage !== current.stage}
+            evolves={mode === "formal" && outcome === "correct" && resultStage !== current.stage}
             busy={busy}
             onSkipAnimation={() => stopEvolutionSound.current?.()}
             onContinue={continueTest}
@@ -163,10 +163,11 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   );
 }
 
-function StageEvolutionResult({ from, to, passed, word, correctAnswer, evolves, busy, onSkipAnimation, onContinue }: {
+function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, evolves, busy, onSkipAnimation, onContinue }: {
   from: Stage;
   to: Stage;
   passed: boolean;
+  skipped: boolean;
   word: string;
   correctAnswer: string;
   evolves: boolean;
@@ -208,11 +209,13 @@ function StageEvolutionResult({ from, to, passed, word, correctAnswer, evolves, 
       <div className="evolution-copy">
         <strong>{phoenixReached
           ? t("test.phoenixTitle")
+          : skipped ? t("test.skippedTitle")
           : passed && evolves
             ? t("test.evolutionTitle")
             : passed ? t("test.correct") : t("test.practiceAgain")}</strong>
         <p>{phoenixReached
           ? t("test.phoenixDescription", { word })
+          : skipped ? t("test.skippedDescription", { word: correctAnswer })
           : evolves
             ? t("test.evolutionStep", {
                 from: t("common.stageName", { stage: from, label: t(`stages.${from}.label`) }),
