@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Fowl to Phoenix — 山雞變鳳凰";
+export const alt = "Fowl to Phoenix — 雞仔變鳳凰";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -35,7 +35,7 @@ export default function OpenGraphImage() {
           Egg. Hatch. Fowl. Phoenix.
         </div>
         <div style={{ color: "#6F56C7", fontSize: 26, marginTop: 30 }}>
-          山雞變鳳凰 · Three-pass vocabulary learning
+          雞仔變鳳凰 · Three-pass vocabulary learning
         </div>
       </div>
     </div>,

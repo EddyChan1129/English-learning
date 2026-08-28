@@ -44,7 +44,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
       <div className="app-header-inner">
         <Link href="/" className="brand" aria-label={t("nav.brandHome")}>
           <Image src="/stage3.png" alt="" width={48} height={48} priority />
-          <span><strong>Fowl to Phoenix</strong><small>山雞變鳳凰</small></span>
+          <span><strong>Fowl to Phoenix</strong><small>雞仔變鳳凰</small></span>
         </Link>
 
         <nav className="index-nav" aria-label={t("nav.mainNavigation")}>
@@ -111,7 +111,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
       <div className="mobile-header-bar">
         <Link href="/" className="mobile-brand" aria-label={t("nav.brandHome")} onClick={() => setMenuOpen(false)}>
           <Image src="/stage3.png" alt="" width={40} height={40} priority />
-          <span><strong>Fowl to Phoenix</strong><small>山雞變鳳凰</small></span>
+          <span><strong>Fowl to Phoenix</strong><small>雞仔變鳳凰</small></span>
         </Link>
         <button
           type="button"

@@ -12,7 +12,7 @@ import { compareHistoryWords, DEFAULT_HISTORY_WORD_ORDER, type HistoryWordOrder 
 import { normalizeVocabularyKey } from "@/lib/vocabulary";
 import type { WordDocument } from "@/types";
 
-const PAGE_SIZE = 12;
+const PAGE_SIZES = [12, 24, 48] as const;
 
 export default function FriendWordsPage() {
   const { friendId } = useParams<{ friendId: string }>();
@@ -22,6 +22,7 @@ export default function FriendWordsPage() {
   const [error, setError] = useState("");
   const [copiedWord, setCopiedWord] = useState("");
   const [wordOrder, setWordOrder] = useState<HistoryWordOrder>(DEFAULT_HISTORY_WORD_ORDER);
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(12);
   const [page, setPage] = useState(1);
   const { t } = useTranslation();
   const friend = friends.find((item) => item.uid === friendId);
@@ -33,9 +34,9 @@ export default function FriendWordsPage() {
     () => new Set(ownWords.map((word) => normalizeVocabularyKey(word.word))),
     [ownWords],
   );
-  const pageCount = Math.max(1, Math.ceil(sortedWords.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(sortedWords.length / pageSize));
   const currentPage = Math.min(page, pageCount);
-  const visibleWords = sortedWords.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const visibleWords = sortedWords.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   useEffect(() => {
     if (!friend) return;
@@ -88,6 +89,15 @@ export default function FriendWordsPage() {
             <option value="testLatest">{t("history.testLatest")}</option>
           </select>
         </label>
+        <label>
+          <span>{t("friends.wordsPerPage")}</span>
+          <select value={pageSize} onChange={(event) => {
+            setPageSize(Number(event.target.value) as (typeof PAGE_SIZES)[number]);
+            setPage(1);
+          }}>
+            {PAGE_SIZES.map((size) => <option key={size} value={size}>{size}</option>)}
+          </select>
+        </label>
         <span>{t("friends.sharedWordCount", { count: words.length })}</span>
       </div> : null}
       {visibleWords.length ? <div className="shared-word-grid">{visibleWords.map((word) => {
@@ -105,7 +115,7 @@ export default function FriendWordsPage() {
           </article>
         );
       })}</div> : null}
-      {words.length > PAGE_SIZE ? (
+      {words.length > pageSize ? (
         <nav className="history-pagination" aria-label={t("history.paginationLabel")}>
           <Button variant="outline" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>{t("history.previousPage")}</Button>
           <span>{t("history.pageStatus", { page: currentPage, total: pageCount })}</span>

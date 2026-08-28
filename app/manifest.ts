@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Fowl to Phoenix — 山雞變鳳凰",
+    name: "Fowl to Phoenix — 雞仔變鳳凰",
     short_name: "Fowl to Phoenix",
     description: "Learn and retain English vocabulary with three-pass spaced repetition.",
     start_url: "/",

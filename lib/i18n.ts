@@ -473,6 +473,7 @@ const resources = {
                 libraryDescription:
                     "Copying a card starts it at Stage 0 and makes it due today, so you need to pass the tests yourself.",
                 sortWords: "Sort this wordbook",
+                wordsPerPage: "Words per page",
                 sharedWordCount_one: "{{count}} shared word",
                 sharedWordCount_other: "{{count}} shared words",
                 loadingWords: "Opening this wordbook…",
@@ -523,8 +524,8 @@ const resources = {
             },
             stages: {
                 0: { label: "蛋", alt: "Stage 0 蛋" },
-                1: { label: "破殼", alt: "Stage 1 破殼山雞" },
-                2: { label: "山雞", alt: "Stage 2 山雞" },
+                1: { label: "破殼", alt: "Stage 1 破殼雞仔" },
+                2: { label: "雞仔", alt: "Stage 2 雞仔" },
                 3: { label: "鳳凰", alt: "Stage 3 鳳凰" },
             },
             stageProgress: {
@@ -534,7 +535,7 @@ const resources = {
                 future: "下一步",
                 overview: "進化階段",
                 wordCount: "{{count}} 個字詞",
-                shortLabels: { 0: "蛋", 1: "破殼", 2: "山雞", 3: "鳳凰" },
+                shortLabels: { 0: "蛋", 1: "破殼", 2: "雞仔", 3: "鳳凰" },
             },
             partsOfSpeech: {
                 noun: "名詞",
@@ -682,7 +683,7 @@ const resources = {
                 threePasses: "每個字或短語需要通過三次測驗，才會移到已掌握詞彙。",
                 loading: "正在打開你的學習桌…",
                 themeEyebrow: "你的進化旅程",
-                themeTitle: "山雞變鳳凰",
+                themeTitle: "雞仔變鳳凰",
                 themeLead: "今日繼續進化 🔥",
             },
             progress: {
@@ -960,6 +961,7 @@ const resources = {
                 libraryDescription:
                     "複製字卡之後，個字會由 Stage 0 加入並即日要測驗，等你自己由頭考過。",
                 sortWords: "排列呢本詞彙簿",
+                wordsPerPage: "每頁顯示字卡",
                 sharedWordCount: "共 {{count}} 個共享詞彙",
                 loadingWords: "開緊呢本詞彙簿…",
                 noSharedWords: "暫時未有啟用中嘅字可以睇。",
