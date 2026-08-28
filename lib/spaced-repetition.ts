@@ -33,7 +33,7 @@ export function calculateTestUpdate(
     stage: nextStage,
     status: nextStage === 3 ? "mastered" : "learning",
     nextTestDate:
-      nextStage === 3 ? testedAt : addDaysToTimestamp(testedAt, nextStage === 1 ? 2 : 4),
+      nextStage === 3 ? testedAt : addDaysToTimestamp(testedAt, nextStage === 1 ? 1 : 2),
     lastTestedAt: testedAt,
   };
 }
