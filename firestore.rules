@@ -14,10 +14,26 @@ service cloud.firestore {
         && exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId));
     }
 
+    function hasFriendRequest(senderId, recipientId) {
+      return exists(/databases/$(database)/documents/users/$(recipientId)/friendRequests/$(senderId));
+    }
+
+    function validFriendDocument(friendId) {
+      return request.resource.data.keys().hasOnly(['uid', 'displayName', 'addedAt'])
+        && request.resource.data.uid == friendId
+        && request.resource.data.displayName
+          == get(/databases/$(database)/documents/profiles/$(friendId)).data.displayName;
+    }
+
+    function mutualFriendshipExistsAfter(userId, friendId) {
+      return existsAfter(/databases/$(database)/documents/users/$(friendId)/friends/$(userId));
+    }
+
     match /profiles/{userId} {
       allow read: if signedIn();
       allow create, update: if isOwner(userId)
-        && request.resource.data.uid == userId;
+        && request.resource.data.uid == userId
+        && request.resource.data.normalizedUsername is string;
       allow delete: if false;
     }
 
@@ -59,7 +75,31 @@ service cloud.firestore {
       }
 
       match /friends/{friendId} {
-        allow read, create, update, delete: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create: if validFriendDocument(friendId)
+          && mutualFriendshipExistsAfter(userId, friendId)
+          && (
+            (isOwner(userId) && hasFriendRequest(friendId, userId))
+            || (signedIn() && request.auth.uid == friendId && hasFriendRequest(userId, friendId))
+          );
+        allow update, delete: if isOwner(userId);
+      }
+
+      match /friendRequests/{senderId} {
+        allow read, delete: if isOwner(userId);
+        allow create, update: if signedIn()
+          && request.auth.uid == senderId
+          && senderId != userId
+          && request.resource.data.keys().hasOnly([
+            'senderUid',
+            'senderDisplayName',
+            'recipientUid',
+            'createdAt'
+          ])
+          && request.resource.data.senderUid == senderId
+          && request.resource.data.recipientUid == userId
+          && request.resource.data.senderDisplayName
+            == get(/databases/$(database)/documents/profiles/$(senderId)).data.displayName;
       }
     }
   }

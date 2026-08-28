@@ -114,35 +114,40 @@ export function AddWordForm({ onAdd, categories }: {
         </div>
         {word.trim() ? <SpeechButton text={word} /> : null}
       </div>
-      <div className="mt-7 grid gap-4 sm:grid-cols-2">
-        <label className="text-sm font-bold">
-          {t("add.targetWord", { language: learningLanguageName })}
-          <RequiredMark />
-          <input
-            ref={wordInputRef}
-            className="field mt-4"
-            required
-            value={word}
-            onChange={(event) => setWord(event.target.value)}
-            placeholder={t("add.targetPlaceholder", { language: learningLanguageName })}
-          />
-        </label>
-        <ChineseMeaningFields values={chineseMeanings} languageName={explanationLanguageName} onChange={setChineseMeanings} />
+      <div className="add-word-primary-grid">
+        <section className="add-word-language-card" aria-label={`${learningLanguageName} / ${explanationLanguageName}`}>
+          <label className="text-sm font-bold">
+            {t("add.targetWord", { language: learningLanguageName })}
+            <RequiredMark />
+            <input
+              ref={wordInputRef}
+              className="field mt-2"
+              required
+              value={word}
+              onChange={(event) => setWord(event.target.value)}
+              placeholder={t("add.targetPlaceholder", { language: learningLanguageName })}
+            />
+          </label>
+          <ChineseMeaningFields values={chineseMeanings} languageName={explanationLanguageName} onChange={setChineseMeanings} />
+        </section>
+        <WordMetadataFields selected={partsOfSpeech} languageName={learningLanguageName} onSelectedChange={setPartsOfSpeech}>
+          <VocabularyCategoryFields categories={categories} selected={selectedCategories} onSelectedChange={setSelectedCategories} />
+        </WordMetadataFields>
       </div>
-      <WordMetadataFields selected={partsOfSpeech} languageName={learningLanguageName} onSelectedChange={setPartsOfSpeech}>
-        <VocabularyCategoryFields categories={categories} selected={selectedCategories} onSelectedChange={setSelectedCategories} />
-      </WordMetadataFields>
-      <AdvancedWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
-      <div className="mt-4 space-y-3">
+      <div className="add-word-examples-section">
         <div className="sentence-fields-heading flex items-center justify-between">
           <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
           {sentences.length < 4 ? <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, { sentence: "", explanation: "" }])}>{t("add.addSentence")}</button> : null}
         </div>
         <p className="-mt-1 text-xs leading-5 text-[var(--muted)]">{t("add.pasteExamplesHint")}</p>
         <span className="sr-only" role="status" aria-live="polite">{pasteMessage}</span>
-        {sentences.map(({ sentence, explanation }, index) => (
-          <div key={index} className="rounded-lg border border-[var(--line)] bg-[#fbfcff] p-3">
-            <div className="flex gap-2">
+        <div className="add-word-example-grid">
+          {sentences.map(({ sentence, explanation }, index) => (
+            <section key={index} className="add-word-example-card">
+              <div className="add-word-example-heading">
+                <strong>{t("add.sentence", { number: index + 1 })}</strong>
+                {sentence ? <SpeechButton text={sentence} label="" /> : null}
+              </div>
               <textarea
                 className="field min-h-20 resize-y"
                 required={index < 2}
@@ -152,20 +157,20 @@ export function AddWordForm({ onAdd, categories }: {
                 placeholder={t("add.sentence", { number: index + 1 })}
                 aria-label={t("add.sentence", { number: index + 1 })}
               />
-              {sentence ? <SpeechButton text={sentence} label="" /> : null}
-            </div>
-            <label className="mt-3 block text-sm font-bold">
-              {t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })}
-              <input
-                className="field mt-2"
-                value={explanation}
-                onChange={(event) => updateSentence(index, "explanation", event.target.value)}
-                placeholder={t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })}
-              />
-            </label>
-          </div>
-        ))}
+              <label className="mt-3 block text-sm font-bold">
+                {t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })}
+                <input
+                  className="field mt-2"
+                  value={explanation}
+                  onChange={(event) => updateSentence(index, "explanation", event.target.value)}
+                  placeholder={t("add.sentenceExplanation", { number: index + 1, language: explanationLanguageName })}
+                />
+              </label>
+            </section>
+          ))}
+        </div>
       </div>
+      <AdvancedWordFields synonyms={synonyms} onSynonymsChange={setSynonyms} commonPhrases={commonPhrases} onCommonPhrasesChange={setCommonPhrases} />
       {error ? (
         <div role="alert" className="essential-toast error">
           <span>{error}</span>

@@ -125,6 +125,7 @@ export interface LanguagePreferences {
 export interface UserProfile {
   uid: string;
   displayName: string;
+  normalizedUsername: string;
   friendCode: string;
   createdAt: string;
 }
@@ -133,4 +134,11 @@ export interface FriendDocument {
   uid: string;
   displayName: string;
   addedAt: string;
+}
+
+export interface FriendRequestDocument {
+  senderUid: string;
+  senderDisplayName: string;
+  recipientUid: string;
+  createdAt: string;
 }

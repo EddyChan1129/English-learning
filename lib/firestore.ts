@@ -18,7 +18,8 @@ import { calculateTestUpdate } from "./spaced-repetition";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "./vocabulary";
 import { makeCopiedWord } from "./word-copy";
 import { normalizeLanguagePreferences } from "./languages";
-import type { FriendDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewsDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
+import { normalizeUsername } from "./usernames";
+import type { FriendDocument, FriendRequestDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewsDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 function requireDb() {
   if (!db) throw new Error("Firebase is not configured.");
@@ -104,6 +105,7 @@ export async function ensureUserProfile(uid: string, email: string | null): Prom
     uid,
     friendCode,
     displayName: existing?.displayName || email?.split("@")[0] || "Fowl to Phoenix learner",
+    normalizedUsername: normalizeUsername(existing?.displayName || email?.split("@")[0] || "Fowl to Phoenix learner"),
     createdAt: existing?.createdAt || new Date().toISOString(),
   };
   await setDoc(reference, profile);
@@ -132,24 +134,67 @@ export function subscribeToFriends(
   }, onError);
 }
 
-export async function addFriend(uid: string, friendCode: string): Promise<FriendDocument> {
-  const normalizedCode = friendCode.trim().toUpperCase();
-  if (!normalizedCode) throw new Error("invalid-friend-code");
+export async function searchUserProfiles(username: string, currentUid: string): Promise<UserProfile[]> {
+  const normalizedUsername = normalizeUsername(username);
+  if (!normalizedUsername) throw new Error("invalid-username");
+  const snapshot = await getDocs(query(
+    collection(requireDb(), "profiles"),
+    where("normalizedUsername", "==", normalizedUsername),
+    limit(10),
+  ));
+  return snapshot.docs
+    .map((item) => item.data() as UserProfile)
+    .filter((profile) => profile.uid !== currentUid);
+}
 
-  const codeSnapshot = await getDoc(doc(requireDb(), "friendCodes", normalizedCode));
-  if (!codeSnapshot.exists()) throw new Error("friend-not-found");
-  const friendUid = codeSnapshot.data().uid as string;
-  if (friendUid === uid) throw new Error("invalid-friend-code");
-  const profileSnapshot = await getDoc(doc(requireDb(), "profiles", friendUid));
-  if (!profileSnapshot.exists()) throw new Error("friend-not-found");
-  const profile = profileSnapshot.data() as UserProfile;
-  const friend: FriendDocument = {
-    uid: profile.uid,
-    displayName: profile.displayName,
-    addedAt: new Date().toISOString(),
+export async function sendFriendRequest(sender: UserProfile, recipient: UserProfile) {
+  if (sender.uid === recipient.uid) throw new Error("invalid-username");
+  const database = requireDb();
+  const friendSnapshot = await getDoc(doc(database, "users", sender.uid, "friends", recipient.uid));
+  if (friendSnapshot.exists()) throw new Error("already-friends");
+  const request: FriendRequestDocument = {
+    senderUid: sender.uid,
+    senderDisplayName: sender.displayName,
+    recipientUid: recipient.uid,
+    createdAt: new Date().toISOString(),
   };
-  await setDoc(doc(requireDb(), "users", uid, "friends", profile.uid), friend);
-  return friend;
+  await setDoc(doc(database, "users", recipient.uid, "friendRequests", sender.uid), request);
+}
+
+export function subscribeToFriendRequests(
+  uid: string,
+  onChange: (requests: FriendRequestDocument[]) => void,
+  onError?: (error: Error) => void,
+) {
+  return onSnapshot(collection(requireDb(), "users", uid, "friendRequests"), (snapshot) => {
+    onChange(snapshot.docs
+      .map((item) => item.data() as FriendRequestDocument)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
+  }, onError);
+}
+
+export async function acceptFriendRequest(recipient: UserProfile, request: FriendRequestDocument) {
+  const database = requireDb();
+  const requestReference = doc(database, "users", recipient.uid, "friendRequests", request.senderUid);
+  const recipientFriendReference = doc(database, "users", recipient.uid, "friends", request.senderUid);
+  const senderFriendReference = doc(database, "users", request.senderUid, "friends", recipient.uid);
+  await runTransaction(database, async (transaction) => {
+    const requestSnapshot = await transaction.get(requestReference);
+    if (!requestSnapshot.exists()) throw new Error("friend-request-not-found");
+    const storedRequest = requestSnapshot.data() as FriendRequestDocument;
+    const addedAt = new Date().toISOString();
+    transaction.set(recipientFriendReference, {
+      uid: storedRequest.senderUid,
+      displayName: storedRequest.senderDisplayName,
+      addedAt,
+    } satisfies FriendDocument);
+    transaction.set(senderFriendReference, {
+      uid: recipient.uid,
+      displayName: recipient.displayName,
+      addedAt,
+    } satisfies FriendDocument);
+    transaction.delete(requestReference);
+  });
 }
 
 export function subscribeToFriendWords(

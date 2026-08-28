@@ -9,7 +9,7 @@ app/page.tsx                 Home: progress, target, and new-word form
 app/test/page.tsx            Sentence gap-fill daily tests
 app/history/page.tsx         Grouped and filterable word-card history
 app/history/[wordId]/        Word stage and full details
-app/friends/page.tsx         Friend code and friend list
+app/friends/page.tsx         Username search, friend requests, and friend list
 app/friends/[friendId]/      A friend's active word cards
 app/vocab/                   Firebase-driven learning-plan catalogue
 app/vocab/[slug]/            Reusable learning-plan library page
@@ -72,7 +72,14 @@ users/{userId}/friends/{friendUserId}
 profiles/{userId}
   uid: string
   displayName: string
+  normalizedUsername: string
   friendCode: string
+  createdAt: ISO timestamp
+
+users/{recipientUserId}/friendRequests/{senderUserId}
+  senderUid: string
+  senderDisplayName: string
+  recipientUid: string
   createdAt: ISO timestamp
 
 friendCodes/{humanReadableCode}
@@ -89,7 +96,7 @@ The app subscribes to the user's word collection and filters due words in the br
 - **Vocab** lists published learning plans from Firestore; the same dynamic route handles future collections without new navbar links.
 - **History** groups words by their added date and supports search, status, part-of-speech, stage, and alphabetical controls.
 - **Word detail** opens from a History card and shows the current stage, dates, synonyms, and example sentences.
-- **Friends** adds people by exact friend code and opens their active vocabulary cards.
+- **Friends** searches exact usernames, creates mutual friendships after acceptance, and opens active vocabulary cards in either direction.
 - **Friend wordbook** copies the complete card into the current user's collection at Stage 0 and makes it due today.
 
 Users can edit their own word cards or deactivate them. Inactive words remain in History but are excluded from daily tests and from friends' shared views.

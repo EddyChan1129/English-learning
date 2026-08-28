@@ -8,7 +8,6 @@ import { AuthForm } from "@/components/AuthForm";
 import { auth, isFirebaseConfigured } from "@/lib/firebase";
 import i18n from "@/lib/i18n";
 import {
-  addFriend,
   addVocabularyCategory,
   addWord,
   copyFriendWord,
@@ -52,7 +51,6 @@ type AppContextValue = {
   createWord: (word: NewWord) => Promise<string>;
   createVocabularyCategory: (name: string) => Promise<string>;
   updateLanguagePreferences: (preferences: LanguagePreferences) => Promise<void>;
-  addFriendByCode: (friendCode: string) => Promise<FriendDocument>;
   copyFromFriend: (friendUid: string, word: WordDocument) => Promise<void>;
   editWord: (wordId: string, word: NewWord) => Promise<void>;
   setWordEnabled: (word: WordDocument, active: boolean) => Promise<void>;
@@ -219,11 +217,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setLanguagePreferences(nextPreferences);
   }
 
-  async function addFriendByCode(friendCode: string) {
-    if (!user) throw new Error("not-signed-in");
-    return protectWrite(() => addFriend(user.uid, friendCode));
-  }
-
   async function copyFromFriend(friendUid: string, word: WordDocument) {
     if (!user) return;
     const normalizedWord = normalizeVocabularyKey(word.word);
@@ -286,7 +279,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       createWord,
       createVocabularyCategory,
       updateLanguagePreferences,
-      addFriendByCode,
       copyFromFriend,
       editWord,
       setWordEnabled,
