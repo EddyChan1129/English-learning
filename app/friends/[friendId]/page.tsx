@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/components/AppProvider";
 import { StageBadge } from "@/components/StageBadge";
+import { Button } from "@/components/ui/button";
 import { subscribeToFriendWords } from "@/lib/firestore";
+import { compareHistoryWords, DEFAULT_HISTORY_WORD_ORDER, type HistoryWordOrder } from "@/lib/history";
 import { normalizeVocabularyKey } from "@/lib/vocabulary";
 import type { WordDocument } from "@/types";
+
+const PAGE_SIZE = 12;
 
 export default function FriendWordsPage() {
   const { friendId } = useParams<{ friendId: string }>();
@@ -17,8 +21,21 @@ export default function FriendWordsPage() {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [copiedWord, setCopiedWord] = useState("");
+  const [wordOrder, setWordOrder] = useState<HistoryWordOrder>(DEFAULT_HISTORY_WORD_ORDER);
+  const [page, setPage] = useState(1);
   const { t } = useTranslation();
   const friend = friends.find((item) => item.uid === friendId);
+  const sortedWords = useMemo(
+    () => words.toSorted((a, b) => compareHistoryWords(a, b, wordOrder)),
+    [wordOrder, words],
+  );
+  const ownWordKeys = useMemo(
+    () => new Set(ownWords.map((word) => normalizeVocabularyKey(word.word))),
+    [ownWords],
+  );
+  const pageCount = Math.max(1, Math.ceil(sortedWords.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const visibleWords = sortedWords.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   useEffect(() => {
     if (!friend) return;
@@ -55,10 +72,26 @@ export default function FriendWordsPage() {
       {error ? <p className="feedback error mt-5" role="alert">{error}</p> : null}
       {!loaded ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("friends.loadingWords")}</p> : null}
       {loaded && words.length === 0 ? <div className="empty-state mt-6"><strong>{t("friends.noSharedWords")}</strong><p>{t("friends.noSharedWordsHint")}</p></div> : null}
-      {words.length ? <div className="shared-word-grid">{words.map((word) => {
-        const alreadyAdded = ownWords.some((item) =>
-          normalizeVocabularyKey(item.word) === normalizeVocabularyKey(word.word),
-        );
+      {words.length ? <div className="friend-library-toolbar">
+        <label>
+          <span>{t("friends.sortWords")}</span>
+          <select value={wordOrder} onChange={(event) => {
+            setWordOrder(event.target.value as HistoryWordOrder);
+            setPage(1);
+          }}>
+            <option value="az">{t("history.aToZ")}</option>
+            <option value="za">{t("history.zToA")}</option>
+            <option value="part">{t("history.byWordType")}</option>
+            <option value="newest">{t("history.newestAdded")}</option>
+            <option value="oldest">{t("history.oldestAdded")}</option>
+            <option value="testSoonest">{t("history.testSoonest")}</option>
+            <option value="testLatest">{t("history.testLatest")}</option>
+          </select>
+        </label>
+        <span>{t("friends.sharedWordCount", { count: words.length })}</span>
+      </div> : null}
+      {visibleWords.length ? <div className="shared-word-grid">{visibleWords.map((word) => {
+        const alreadyAdded = ownWordKeys.has(normalizeVocabularyKey(word.word));
         return (
           <article key={word.id} className="shared-word-card">
             <div className="flex items-start justify-between gap-3"><div><h2>{word.word}</h2><p>{word.chineseMeanings.join("；")}</p></div><StageBadge stage={word.stage} status={word.status} /></div>
@@ -72,6 +105,13 @@ export default function FriendWordsPage() {
           </article>
         );
       })}</div> : null}
+      {words.length > PAGE_SIZE ? (
+        <nav className="history-pagination" aria-label={t("history.paginationLabel")}>
+          <Button variant="outline" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>{t("history.previousPage")}</Button>
+          <span>{t("history.pageStatus", { page: currentPage, total: pageCount })}</span>
+          <Button variant="outline" disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>{t("history.nextPage")}</Button>
+        </nav>
+      ) : null}
     </div>
   );
 }

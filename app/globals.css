@@ -423,6 +423,11 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .friend-card p { margin-top: .1rem; color: var(--muted); font-size: .72rem; }
 .friend-library-heading { display: flex; align-items: end; justify-content: space-between; gap: 2rem; border-bottom: 1px solid var(--ink); padding-bottom: 1.5rem; }
 .friend-library-heading > p { max-width: 31rem; color: var(--muted); font-size: .82rem; line-height: 1.6; }
+.friend-library-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: .8rem 2rem; margin-top: 1rem; border: 1px solid var(--line); background: rgba(255,255,255,.55); padding: .75rem 1rem; }
+.friend-library-toolbar label { display: grid; min-width: min(100%, 19rem); gap: .35rem; }
+.friend-library-toolbar label > span { color: var(--muted); font-size: .65rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.friend-library-toolbar select { min-height: 2.55rem; border: 1px solid #bbc4d5; border-radius: .35rem; background: white; padding-inline: .65rem 2rem; color: var(--ink); font-size: .75rem; font-weight: 700; }
+.friend-library-toolbar > span { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .68rem; font-weight: 800; }
 .shared-word-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.5rem; }
 .shared-word-card { display: flex; min-width: 0; flex-direction: column; border: 1px solid var(--line); border-top: 5px solid var(--violet); background: white; padding: 1.3rem; box-shadow: 4px 4px 0 rgba(20, 33, 61, .07); }
 .shared-word-card h2 { font-family: var(--font-display), serif; font-size: 2rem; font-weight: 650; line-height: 1; }
@@ -557,6 +562,8 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 :root[data-theme="dark"] .filter-tabs,
 :root[data-theme="dark"] .history-filter-panel,
 :root[data-theme="dark"] .history-filter-controls select,
+:root[data-theme="dark"] .friend-library-toolbar,
+:root[data-theme="dark"] .friend-library-toolbar select,
 :root[data-theme="dark"] .category-filter-list button,
 :root[data-theme="dark"] .essential-toast,
 :root[data-theme="dark"] .word-card,

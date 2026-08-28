@@ -472,6 +472,9 @@ const resources = {
                 libraryEyebrow: "Friend’s wordbook",
                 libraryDescription:
                     "Copying a card starts it at Stage 0 and makes it due today, so you need to pass the tests yourself.",
+                sortWords: "Sort this wordbook",
+                sharedWordCount_one: "{{count}} shared word",
+                sharedWordCount_other: "{{count}} shared words",
                 loadingWords: "Opening this wordbook…",
                 noSharedWords: "No active words to share yet.",
                 noSharedWordsHint: "Come back after your friend adds more vocabulary.",
@@ -956,6 +959,8 @@ const resources = {
                 libraryEyebrow: "好友詞彙簿",
                 libraryDescription:
                     "複製字卡之後，個字會由 Stage 0 加入並即日要測驗，等你自己由頭考過。",
+                sortWords: "排列呢本詞彙簿",
+                sharedWordCount: "共 {{count}} 個共享詞彙",
                 loadingWords: "開緊呢本詞彙簿…",
                 noSharedWords: "暫時未有啟用中嘅字可以睇。",
                 noSharedWordsHint: "等朋友加多啲生字之後再返嚟睇啦。",
