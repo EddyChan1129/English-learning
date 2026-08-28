@@ -1,0 +1,152 @@
+{
+  "id": "simple-english-1000",
+  "slug": "1000-simple-english-words",
+  "title": {
+    "en": "1000 Simple English Words",
+    "zh": "1000 個簡單英語單詞"
+  },
+  "description": {
+    "en": "A growing beginner collection of high-frequency words for everyday English. This preview contains the first sample entries.",
+    "zh": "為初學者而設嘅日常高頻詞彙系列。呢個預覽版本先提供第一批示範單詞。"
+  },
+  "level": {
+    "en": "Beginner",
+    "zh": "初級"
+  },
+  "order": 2,
+  "featured": true,
+  "entries": [
+    {
+      "term": "ability",
+      "englishDefinition": "The power or skill to do something.",
+      "chineseMeanings": ["能力", "本領"],
+      "synonyms": ["skill", "capacity"],
+      "partsOfSpeech": ["noun"],
+      "examples": [
+        { "english": "She has the ability to explain difficult ideas clearly.", "chinese": "她有能力清楚解釋困難的概念。" },
+        { "english": "Practice improves your ability to speak English.", "chinese": "練習可以提升你說英語的能力。" }
+      ]
+    },
+    {
+      "term": "accept",
+      "englishDefinition": "To agree to receive, take, or approve something.",
+      "chineseMeanings": ["接受", "接納"],
+      "synonyms": ["receive", "approve"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "I accept your invitation to dinner.", "chinese": "我接受你的晚餐邀請。" },
+        { "english": "He accepted that he had made a mistake.", "chinese": "他接受了自己犯錯的事實。" }
+      ]
+    },
+    {
+      "term": "achieve",
+      "englishDefinition": "To successfully reach a goal after making an effort.",
+      "chineseMeanings": ["達成", "取得"],
+      "synonyms": ["accomplish", "reach"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "You can achieve your goal with regular practice.", "chinese": "持續練習可以令你達成目標。" },
+        { "english": "The team achieved excellent results this year.", "chinese": "團隊今年取得了優秀的成績。" }
+      ]
+    },
+    {
+      "term": "advice",
+      "englishDefinition": "An opinion or suggestion about what someone should do.",
+      "chineseMeanings": ["建議", "忠告"],
+      "synonyms": ["guidance", "recommendation"],
+      "partsOfSpeech": ["noun"],
+      "examples": [
+        { "english": "My teacher gave me useful advice about studying.", "chinese": "老師給了我有關溫習的實用建議。" },
+        { "english": "She asked her friend for advice before deciding.", "chinese": "她作決定前向朋友尋求意見。" }
+      ]
+    },
+    {
+      "term": "allow",
+      "englishDefinition": "To give permission for someone to do something.",
+      "chineseMeanings": ["允許", "准許"],
+      "synonyms": ["permit", "let"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "The library does not allow food inside.", "chinese": "圖書館不允許在裡面進食。" },
+        { "english": "This app allows users to save new vocabulary.", "chinese": "這個應用程式允許用戶儲存新詞彙。" }
+      ]
+    },
+    {
+      "term": "arrive",
+      "englishDefinition": "To reach a place at the end of a journey.",
+      "chineseMeanings": ["到達", "抵達"],
+      "synonyms": ["reach", "come"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "Please arrive at the station before nine o'clock.", "chinese": "請在九點前到達車站。" },
+        { "english": "The package arrived safely this morning.", "chinese": "包裹今天早上安全送達。" }
+      ]
+    },
+    {
+      "term": "avoid",
+      "englishDefinition": "To stay away from someone or something, or prevent something from happening.",
+      "chineseMeanings": ["避免", "避開"],
+      "synonyms": ["prevent", "escape"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "Try to avoid using your phone while driving.", "chinese": "駕駛時應避免使用電話。" },
+        { "english": "We left early to avoid the busy traffic.", "chinese": "我們提早離開以避開繁忙交通。" }
+      ]
+    },
+    {
+      "term": "basic",
+      "englishDefinition": "Simple and necessary, forming the starting point of something.",
+      "chineseMeanings": ["基本的", "基礎的"],
+      "synonyms": ["simple", "essential"],
+      "partsOfSpeech": ["adjective"],
+      "examples": [
+        { "english": "The course teaches basic English grammar.", "chinese": "這個課程教授基礎英語文法。" },
+        { "english": "Clean water is a basic human need.", "chinese": "潔淨食水是人類的基本需要。" }
+      ]
+    },
+    {
+      "term": "believe",
+      "englishDefinition": "To think that something is true or that someone is telling the truth.",
+      "chineseMeanings": ["相信", "認為"],
+      "synonyms": ["trust", "think"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "I believe that small habits can create big changes.", "chinese": "我相信小習慣可以帶來大改變。" },
+        { "english": "Do you believe his story?", "chinese": "你相信他的故事嗎？" }
+      ]
+    },
+    {
+      "term": "choose",
+      "englishDefinition": "To decide which person or thing you want from several options.",
+      "chineseMeanings": ["選擇", "挑選"],
+      "synonyms": ["select", "pick"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "You can choose a book from the shelf.", "chinese": "你可以從書架上選一本書。" },
+        { "english": "She chose to walk home instead of taking the bus.", "chinese": "她選擇步行回家而不是乘搭巴士。" }
+      ]
+    },
+    {
+      "term": "clear",
+      "englishDefinition": "Easy to understand, see, or hear.",
+      "chineseMeanings": ["清楚的", "清晰的"],
+      "synonyms": ["obvious", "plain"],
+      "partsOfSpeech": ["adjective"],
+      "examples": [
+        { "english": "The teacher gave a clear explanation.", "chinese": "老師作出了清楚的解釋。" },
+        { "english": "Please speak in a clear voice.", "chinese": "請用清晰的聲線說話。" }
+      ]
+    },
+    {
+      "term": "decide",
+      "englishDefinition": "To make a choice after thinking about the possibilities.",
+      "chineseMeanings": ["決定", "判斷"],
+      "synonyms": ["determine", "choose"],
+      "partsOfSpeech": ["verb"],
+      "examples": [
+        { "english": "We need to decide where to meet tomorrow.", "chinese": "我們需要決定明天在哪裡見面。" },
+        { "english": "He decided to learn ten new words every week.", "chinese": "他決定每星期學十個新詞。" }
+      ]
+    }
+  ]
+}

@@ -128,7 +128,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!user) return;
     loadLearningPlans()
-      .then((plans) => setLearningPlans(plans.length ? plans : FALLBACK_LEARNING_PLANS))
+      .then((plans) => setLearningPlans([
+        ...FALLBACK_LEARNING_PLANS.filter((fallback) => !plans.some((plan) => plan.id === fallback.id)),
+        ...plans,
+      ].sort((a, b) => a.order - b.order)))
       .catch(() => setLearningPlans(FALLBACK_LEARNING_PLANS))
       .finally(() => setLearningPlansLoaded(true));
     ensureUserProfile(user.uid, user.email)

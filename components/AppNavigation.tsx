@@ -12,7 +12,6 @@ import type { LearningPlan } from "@/types";
 
 const links = [
   { href: "/", labelKey: "nav.home" },
-  { href: "/news", labelKey: "nav.news" },
   { href: "/test", labelKey: "nav.test" },
   { href: "/upcoming-tests", labelKey: "nav.upcomingTests" },
   { href: "/history", labelKey: "nav.history" },
@@ -23,8 +22,9 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
-  const vocabActive = pathname.startsWith("/vocab") || pathname.startsWith("/must-learn");
+  const vocabActive = pathname.startsWith("/vocab") || pathname.startsWith("/must-learn") || pathname.startsWith("/news");
   const featuredPlans = learningPlans.filter((plan) => plan.featured).slice(0, 6);
+  const [primaryPlan, ...remainingFeaturedPlans] = featuredPlans;
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -49,7 +49,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
         </Link>
 
         <nav className="index-nav" aria-label={t("nav.mainNavigation")}>
-          {links.slice(0, 4).map((link) => {
+          {links.slice(0, 3).map((link) => {
             const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>{t(link.labelKey)}</Link>;
           })}
@@ -59,7 +59,21 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="plan-dropdown">
               <div className="plan-dropdown-heading"><strong>{t("nav.learningPlans")}</strong><small>{t("nav.learningPlansHint")}</small></div>
-              {featuredPlans.map((plan) => (
+              {primaryPlan && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/vocab/${primaryPlan.slug}`} className="plan-dropdown-item">
+                    <span><strong>{primaryPlan.title.en}</strong><small>{primaryPlan.title.zh}</small></span>
+                    <span aria-hidden="true">→</span>
+                  </Link>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem asChild>
+                <Link href="/news" className="plan-dropdown-item" aria-current={pathname.startsWith("/news") ? "page" : undefined}>
+                  <span><strong>{t("nav.news")}</strong><small>{t("nav.newsHint")}</small></span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </DropdownMenuItem>
+              {remainingFeaturedPlans.map((plan) => (
                 <DropdownMenuItem key={plan.id} asChild>
                   <Link href={`/vocab/${plan.slug}`} className="plan-dropdown-item">
                     <span><strong>{plan.title.en}</strong><small>{plan.title.zh}</small></span>
@@ -71,7 +85,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
               <DropdownMenuItem asChild><Link href="/vocab" className="plan-dropdown-all">{t("nav.allPlans")} <span aria-hidden="true">→</span></Link></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {links.slice(4).map((link) => {
+          {links.slice(3).map((link) => {
             const active = pathname.startsWith(link.href);
             return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>{t(link.labelKey)}</Link>;
           })}
@@ -107,18 +121,20 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
         <div className="mobile-menu-layer">
           <button className="mobile-menu-backdrop" type="button" aria-label={t("nav.closeMenu")} onClick={() => setMenuOpen(false)} />
           <div id="mobile-navigation" className="mobile-menu-panel">
-            <nav aria-label={t("nav.mainNavigation")}>{links.slice(0, 4).map((link) => {
+            <nav aria-label={t("nav.mainNavigation")}>{links.slice(0, 3).map((link) => {
               const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
               return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined} onClick={() => setMenuOpen(false)}><span>{t(link.labelKey)}</span><span aria-hidden="true">→</span></Link>;
             })}
               <details className="mobile-plan-menu" open={vocabActive}>
                 <summary className={vocabActive ? "active" : ""}><span>{t("nav.vocab")}</span><span aria-hidden="true">⌄</span></summary>
                 <div>
-                  {featuredPlans.map((plan) => <Link key={plan.id} href={`/vocab/${plan.slug}`} onClick={() => setMenuOpen(false)}><span><strong>{plan.title.en}</strong><small>{plan.title.zh}</small></span><span aria-hidden="true">→</span></Link>)}
+                  {primaryPlan && <Link href={`/vocab/${primaryPlan.slug}`} onClick={() => setMenuOpen(false)}><span><strong>{primaryPlan.title.en}</strong><small>{primaryPlan.title.zh}</small></span><span aria-hidden="true">→</span></Link>}
+                  <Link href="/news" aria-current={pathname.startsWith("/news") ? "page" : undefined} onClick={() => setMenuOpen(false)}><span><strong>{t("nav.news")}</strong><small>{t("nav.newsHint")}</small></span><span aria-hidden="true">→</span></Link>
+                  {remainingFeaturedPlans.map((plan) => <Link key={plan.id} href={`/vocab/${plan.slug}`} onClick={() => setMenuOpen(false)}><span><strong>{plan.title.en}</strong><small>{plan.title.zh}</small></span><span aria-hidden="true">→</span></Link>)}
                   <Link href="/vocab" onClick={() => setMenuOpen(false)}><span>{t("nav.allPlans")}</span><span aria-hidden="true">→</span></Link>
                 </div>
               </details>
-              {links.slice(4).map((link) => {
+              {links.slice(3).map((link) => {
                 const active = pathname.startsWith(link.href);
                 return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined} onClick={() => setMenuOpen(false)}><span>{t(link.labelKey)}</span><span aria-hidden="true">→</span></Link>;
               })}

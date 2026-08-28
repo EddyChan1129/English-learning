@@ -54,6 +54,7 @@ const resources = {
             nav: {
                 home: "Home",
                 news: "News",
+                newsHint: "Read daily English and collect useful vocabulary",
                 test: "Test",
                 upcomingTests: "Upcoming tests",
                 mustLearn: "200 Essentials",
@@ -547,6 +548,7 @@ const resources = {
             nav: {
                 home: "首頁",
                 news: "每日新聞",
+                newsHint: "閱讀每日英文，將實用字詞加入生字庫",
                 test: "測驗",
                 upcomingTests: "即將測驗",
                 mustLearn: "200 必學生字",

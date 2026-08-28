@@ -11,6 +11,7 @@
     "test": "node --test lib/*.test.ts",
     "stage0:due": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --experimental-strip-types scripts/make-stage-zero-due.ts",
     "news:upload": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --experimental-strip-types scripts/upload-news.ts",
+    "plan:upload": "node --env-file-if-exists=.env --env-file-if-exists=.env.local --experimental-strip-types scripts/upload-learning-plan.ts",
     "seed:plans:check": "node --experimental-strip-types scripts/seed-learning-plans.ts",
     "seed:plans": "node --experimental-strip-types scripts/seed-learning-plans.ts --write"
   },
