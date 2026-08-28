@@ -51,7 +51,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
 
   async function continueTest() {
     if (!current || outcome === null) return;
-    stopEvolutionSound.current?.();
+    stopEvolutionSound.current = null;
     setBusy(true);
     try {
       if (outcome === "skipped") await onSkip(current);

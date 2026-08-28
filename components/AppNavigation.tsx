@@ -13,6 +13,7 @@ import type { LearningPlan } from "@/types";
 const links = [
   { href: "/", labelKey: "nav.home" },
   { href: "/test", labelKey: "nav.test" },
+  { href: "/upcoming-tests", labelKey: "nav.upcomingTests" },
   { href: "/history", labelKey: "nav.history" },
   { href: "/friends", labelKey: "nav.friends" },
 ];
@@ -47,7 +48,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
         </Link>
 
         <nav className="index-nav" aria-label={t("nav.mainNavigation")}>
-          {links.slice(0, 2).map((link) => {
+          {links.slice(0, 3).map((link) => {
             const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
             return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>{t(link.labelKey)}</Link>;
           })}
@@ -69,7 +70,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
               <DropdownMenuItem asChild><Link href="/vocab" className="plan-dropdown-all">{t("nav.allPlans")} <span aria-hidden="true">→</span></Link></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {links.slice(2).map((link) => {
+          {links.slice(3).map((link) => {
             const active = pathname.startsWith(link.href);
             return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined}>{t(link.labelKey)}</Link>;
           })}
@@ -105,7 +106,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
         <div className="mobile-menu-layer">
           <button className="mobile-menu-backdrop" type="button" aria-label={t("nav.closeMenu")} onClick={() => setMenuOpen(false)} />
           <div id="mobile-navigation" className="mobile-menu-panel">
-            <nav aria-label={t("nav.mainNavigation")}>{links.slice(0, 2).map((link) => {
+            <nav aria-label={t("nav.mainNavigation")}>{links.slice(0, 3).map((link) => {
               const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
               return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined} onClick={() => setMenuOpen(false)}><span>{t(link.labelKey)}</span><span aria-hidden="true">→</span></Link>;
             })}
@@ -116,7 +117,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
                   <Link href="/vocab" onClick={() => setMenuOpen(false)}><span>{t("nav.allPlans")}</span><span aria-hidden="true">→</span></Link>
                 </div>
               </details>
-              {links.slice(2).map((link) => {
+              {links.slice(3).map((link) => {
                 const active = pathname.startsWith(link.href);
                 return <Link key={link.href} href={link.href} className={active ? "active" : ""} aria-current={active ? "page" : undefined} onClick={() => setMenuOpen(false)}><span>{t(link.labelKey)}</span><span aria-hidden="true">→</span></Link>;
               })}

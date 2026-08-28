@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { TestSession } from "@/components/TestSession";
 import { useApp } from "@/components/AppProvider";
-import { formatStoredDateTime } from "@/lib/date";
 import { shuffled } from "@/lib/test-helpers";
 import type { WordDocument } from "@/types";
 
@@ -18,13 +17,6 @@ export default function TestPage() {
   const [randomSession, setRandomSession] = useState<{ id: number; words: WordDocument[] }>({ id: 0, words: [] });
   const { t } = useTranslation();
   const testableWords = useMemo(() => words.filter((word) => word.status !== "inactive"), [words]);
-  const upcomingWords = useMemo(() => {
-    const dueIds = new Set(dueWords.map((word) => word.id));
-    return testableWords
-      .filter((word) => word.status === "learning" && !dueIds.has(word.id))
-      .toSorted((a, b) => Date.parse(a.nextTestDate) - Date.parse(b.nextTestDate))
-      .slice(0, 6);
-  }, [dueWords, testableWords]);
 
   function startRandomTest() {
     setRandomSession((current) => ({ id: current.id + 1, words: shuffled(testableWords) }));
@@ -52,8 +44,6 @@ export default function TestPage() {
         </div>
         <p className="mt-3 text-xs text-[var(--muted)]">{t(mode === "formal" ? "testPage.formalModeDescription" : "testPage.randomModeDescription")}</p>
       </section>
-
-      {mode === "formal" ? <UpcomingTests words={upcomingWords} /> : null}
 
       {!wordsLoaded
         ? <p className="py-24 text-center text-sm text-[var(--muted)]">{t("testPage.preparing")}</p>
@@ -125,27 +115,6 @@ function TestProgress({ sessionIds, currentId, results, wordsById }: {
           const mark = state === "correct" ? "✓" : state === "incorrect" ? "×" : String(index + 1);
           return <li key={id} className={state} aria-current={state === "current" ? "step" : undefined} aria-label={t(`test.progressState.${state}`, { number: index + 1 })}>{mark}</li>;
         })}
-      </ol>
-    </section>
-  );
-}
-
-function UpcomingTests({ words }: { words: WordDocument[] }) {
-  const { i18n, t } = useTranslation();
-  if (!words.length) return null;
-  return (
-    <section className="upcoming-tests" aria-labelledby="upcoming-tests-title">
-      <div className="upcoming-tests-heading">
-        <div><span className="eyebrow">{t("testPage.upcomingEyebrow")}</span><h2 id="upcoming-tests-title">{t("testPage.upcomingTitle")}</h2></div>
-        <small>{t("testPage.upcomingDescription")}</small>
-      </div>
-      <ol>
-        {words.map((word) => (
-          <li key={word.id}>
-            <Link href={`/history/${word.id}`}><strong>{word.word}</strong><span>{t("common.stageName", { stage: word.stage, label: t(`stages.${word.stage}.label`) })}</span></Link>
-            <time dateTime={word.nextTestDate}>{formatStoredDateTime(word.nextTestDate, i18n.resolvedLanguage)}</time>
-          </li>
-        ))}
       </ol>
     </section>
   );
