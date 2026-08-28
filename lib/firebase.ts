@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { browserLocalPersistence, getAuth, inMemoryPersistence, initializeAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -12,11 +12,14 @@ const firebaseConfig = {
 };
 
 export const isFirebaseConfigured = Object.values(firebaseConfig).every(Boolean);
+const existingApp = getApps().length ? getApp() : null;
 const app = isFirebaseConfigured
-  ? getApps().length
-    ? getApp()
-    : initializeApp(firebaseConfig)
+  ? existingApp ?? initializeApp(firebaseConfig)
   : null;
 
-export const auth = app ? getAuth(app) : null;
+export const auth = app
+  ? existingApp
+    ? getAuth(app)
+    : initializeAuth(app, { persistence: [browserLocalPersistence, inMemoryPersistence] })
+  : null;
 export const db = app ? getFirestore(app) : null;
