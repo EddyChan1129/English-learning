@@ -41,6 +41,11 @@ service cloud.firestore {
       }
     }
 
+    match /news/{dayId} {
+      allow read: if signedIn() && resource.data.published == true;
+      allow write: if false;
+    }
+
     match /users/{userId} {
       allow read, write: if isOwner(userId);
 

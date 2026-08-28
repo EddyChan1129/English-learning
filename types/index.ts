@@ -92,6 +92,23 @@ export interface LearningPlanEntry {
   searchTokens: string[];
 }
 
+export interface NewsDocument {
+  id: string;
+  date: string;
+  title: string;
+  summary: string;
+  paragraphs: string[];
+  sourceName: string;
+  sourceUrl: string;
+  publishedAt: string;
+  published: boolean;
+}
+
+export type NewsUploadInput = Pick<
+  NewsDocument,
+  "title" | "summary" | "paragraphs" | "sourceName" | "sourceUrl"
+>;
+
 export interface UserTarget {
   targetWords: number;
   targetDays: number;
