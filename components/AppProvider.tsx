@@ -49,7 +49,7 @@ type AppContextValue = {
   savingWord: boolean;
   dueWords: WordDocument[];
   saveLearningTarget: (target: UserTarget) => Promise<void>;
-  createWord: (word: NewWord) => Promise<void>;
+  createWord: (word: NewWord) => Promise<string>;
   createVocabularyCategory: (name: string) => Promise<string>;
   updateLanguagePreferences: (preferences: LanguagePreferences) => Promise<void>;
   addFriendByCode: (friendCode: string) => Promise<FriendDocument>;
@@ -191,12 +191,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function createWord(word: NewWord) {
-    if (!user) return;
+    if (!user) throw new Error("not-signed-in");
     const normalizedWord = normalizeVocabularyKey(word.word);
     if (words.some((item) => normalizeVocabularyKey(item.word) === normalizedWord)) {
       throw new Error(DUPLICATE_VOCABULARY_ERROR);
     }
-    await protectWrite(() => addWord(user.uid, word));
+    return protectWrite(() => addWord(user.uid, word));
   }
 
   async function createVocabularyCategory(name: string) {

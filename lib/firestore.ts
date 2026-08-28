@@ -18,7 +18,7 @@ import { calculateTestUpdate } from "./spaced-repetition";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "./vocabulary";
 import { makeCopiedWord } from "./word-copy";
 import { normalizeLanguagePreferences } from "./languages";
-import type { FriendDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
+import type { FriendDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewsDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 function requireDb() {
   if (!db) throw new Error("Firebase is not configured.");
@@ -73,6 +73,23 @@ export async function loadLearningPlanEntries(planId: string): Promise<LearningP
     limit(500),
   ));
   return snapshot.docs.map((item) => ({ ...item.data(), id: item.id }) as LearningPlanEntry);
+}
+
+export async function loadPublishedNews(): Promise<NewsDocument[]> {
+  const snapshot = await getDocs(query(
+    collection(requireDb(), "news"),
+    where("published", "==", true),
+    limit(365),
+  ));
+  return snapshot.docs
+    .map((item) => ({ ...item.data(), id: item.id }) as NewsDocument)
+    .sort((a, b) => b.date.localeCompare(a.date));
+}
+
+export async function loadPublishedNewsDay(dayId: string): Promise<NewsDocument | null> {
+  const snapshot = await getDoc(doc(requireDb(), "news", dayId));
+  if (!snapshot.exists() || snapshot.data().published !== true) return null;
+  return { ...snapshot.data(), id: snapshot.id } as NewsDocument;
 }
 
 export async function ensureUserProfile(uid: string, email: string | null): Promise<UserProfile> {
@@ -169,7 +186,7 @@ export function subscribeToWords(
 
 export async function addWord(uid: string, input: NewWord) {
   const now = new Date().toISOString();
-  await insertUniqueWord(uid, {
+  return insertUniqueWord(uid, {
     ...input,
     stage: 0,
     status: "learning",
@@ -237,6 +254,7 @@ async function insertUniqueWord(uid: string, word: StoredWord) {
     });
     transaction.set(keyReference, { wordId: wordReference.id, normalizedWord });
   });
+  return wordReference.id;
 }
 
 async function assertNoDuplicateWord(uid: string, normalizedWord: string, excludedWordId?: string) {

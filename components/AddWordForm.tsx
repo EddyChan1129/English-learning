@@ -15,7 +15,7 @@ import { AdvancedWordFields, RequiredMark, WordMetadataFields } from "./WordMeta
 const EMPTY_SENTENCES = () => Array.from({ length: 2 }, () => ({ sentence: "", explanation: "" }));
 
 export function AddWordForm({ onAdd, categories }: {
-  onAdd: (word: NewWord) => Promise<void>;
+  onAdd: (word: NewWord) => Promise<unknown>;
   categories: string[];
 }) {
   const [word, setWord] = useState("");

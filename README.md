@@ -84,6 +84,7 @@ The app subscribes to the user's word collection and filters due words in the br
 ## Pages
 
 - **Home** shows target and time progress, today's due count, and the add-word form.
+- **News** lists published daily editions; selecting a word or phrase in an article opens a one-sentence vocabulary capture beside the selection.
 - **Test** offers formal due reviews that update stages and a shuffled all-word practice mode that leaves stages unchanged.
 - **Vocab** lists published learning plans from Firestore; the same dynamic route handles future collections without new navbar links.
 - **History** groups words by their added date and supports search, status, part-of-speech, stage, and alphabetical controls.

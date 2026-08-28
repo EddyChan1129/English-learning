@@ -26,6 +26,34 @@ export function newsDateFromDayId(dayId: string) {
   return date;
 }
 
+export function normalizeNewsSelection(value: string) {
+  return value
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^[“”"'([{]+|[“”"'\])},.!?;:…]+$/g, "");
+}
+
+export function sentenceAtOffset(text: string, offset: number) {
+  const safeOffset = Math.max(0, Math.min(offset, text.length));
+  const sentenceEnd = /[.!?。！？]/;
+  let start = 0;
+  let end = text.length;
+
+  for (let index = safeOffset - 1; index >= 0; index -= 1) {
+    if (sentenceEnd.test(text[index])) {
+      start = index + 1;
+      break;
+    }
+  }
+  for (let index = safeOffset; index < text.length; index += 1) {
+    if (sentenceEnd.test(text[index])) {
+      end = index + 1;
+      break;
+    }
+  }
+  return text.slice(start, end).trim();
+}
+
 export function validateNewsUploadInput(input: unknown): NewsUploadInput {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     throw new Error("News file must contain a JSON object.");
