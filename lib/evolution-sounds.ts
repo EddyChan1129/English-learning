@@ -9,12 +9,16 @@ export function getEvolutionSoundCue(stage: Stage): EvolutionSoundCue | null {
   return null;
 }
 
+export function getEvolutionSoundVolume(stage: Stage) {
+  return stage === 1 ? .11 : .35;
+}
+
 export function playEvolutionSound(stage: Stage) {
   const cue = getEvolutionSoundCue(stage);
   if (!cue || typeof Audio === "undefined") return () => undefined;
 
   const audio = new Audio(cue);
-  audio.volume = .35;
+  audio.volume = getEvolutionSoundVolume(stage);
   void audio.play().catch(() => undefined);
 
   return () => {

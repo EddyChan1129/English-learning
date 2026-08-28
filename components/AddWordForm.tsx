@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { parsePastedExamples } from "@/lib/example-paste";
 import { isDuplicateVocabularyError } from "@/lib/vocabulary";
 import { getLanguageName } from "@/lib/languages";
 import { useApp } from "@/components/AppProvider";
@@ -25,7 +26,11 @@ export function AddWordForm({ onAdd, categories }: {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [sentences, setSentences] = useState(EMPTY_SENTENCES);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [pasteMessage, setPasteMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const wordInputRef = useRef<HTMLInputElement>(null);
   const { languagePreferences } = useApp();
   const { i18n, t } = useTranslation();
   const learningLanguageName = getLanguageName(languagePreferences.learningLanguage, i18n.resolvedLanguage);
@@ -35,8 +40,22 @@ export function AddWordForm({ onAdd, categories }: {
     setSentences((current) => current.map((entry, i) => i === index ? { ...entry, [field]: value } : entry));
   }
 
+  function pasteExamples(index: number, event: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const examples = parsePastedExamples(event.clipboardData.getData("text")).slice(0, 4 - index);
+    if (!examples.length) return;
+    event.preventDefault();
+    setSentences((current) => {
+      const next = [...current];
+      while (next.length < index + examples.length) next.push({ sentence: "", explanation: "" });
+      examples.forEach((example, offset) => { next[index + offset] = example; });
+      return next;
+    });
+    setPasteMessage(t("add.pastedExamples", { count: examples.length }));
+  }
+
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    setSuccess("");
     const cleanSynonyms = synonyms.split(",").map((item) => item.trim()).filter(Boolean);
     const cleanChineseMeanings = chineseMeanings.map((item) => item.trim()).filter(Boolean);
     const cleanSentences = sentences
@@ -54,8 +73,9 @@ export function AddWordForm({ onAdd, categories }: {
     setBusy(true);
     setError("");
     try {
+      const savedWord = word.trim();
       await onAdd({
-        word: word.trim(),
+        word: savedWord,
         chineseMeaning: cleanChineseMeanings[0],
         chineseMeanings: cleanChineseMeanings,
         synonyms: cleanSynonyms,
@@ -72,6 +92,10 @@ export function AddWordForm({ onAdd, categories }: {
       setCommonPhrases("");
       setSelectedCategories([]);
       setSentences(EMPTY_SENTENCES());
+      setPasteMessage("");
+      setSuccess(t("add.addedToast", { word: savedWord }));
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      wordInputRef.current?.focus({ preventScroll: true });
     } catch (saveError) {
       setError(isDuplicateVocabularyError(saveError)
         ? t("add.duplicateError", { word: word.trim() })
@@ -82,7 +106,7 @@ export function AddWordForm({ onAdd, categories }: {
   }
 
   return (
-    <form onSubmit={submit} className="card word-form p-6 sm:p-8" aria-busy={busy}>
+    <form ref={formRef} onSubmit={submit} className="card word-form scroll-mt-24 p-6 sm:p-8" aria-busy={busy}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="eyebrow">{t("add.eyebrow")}</p>
@@ -95,6 +119,7 @@ export function AddWordForm({ onAdd, categories }: {
           {t("add.targetWord", { language: learningLanguageName })}
           <RequiredMark />
           <input
+            ref={wordInputRef}
             className="field mt-4"
             required
             value={word}
@@ -113,6 +138,8 @@ export function AddWordForm({ onAdd, categories }: {
           <strong className="text-sm">{t("add.sentences")}<RequiredMark /> <span className="font-normal text-[var(--muted)]">{t("add.minimum")}</span></strong>
           {sentences.length < 4 ? <button type="button" className="text-button" onClick={() => setSentences((current) => [...current, { sentence: "", explanation: "" }])}>{t("add.addSentence")}</button> : null}
         </div>
+        <p className="-mt-1 text-xs leading-5 text-[var(--muted)]">{t("add.pasteExamplesHint")}</p>
+        <span className="sr-only" role="status" aria-live="polite">{pasteMessage}</span>
         {sentences.map(({ sentence, explanation }, index) => (
           <div key={index} className="rounded-lg border border-[var(--line)] bg-[#fbfcff] p-3">
             <div className="flex gap-2">
@@ -121,6 +148,7 @@ export function AddWordForm({ onAdd, categories }: {
                 required={index < 2}
                 value={sentence}
                 onChange={(event) => updateSentence(index, "sentence", event.target.value)}
+                onPaste={(event) => pasteExamples(index, event)}
                 placeholder={t("add.sentence", { number: index + 1 })}
                 aria-label={t("add.sentence", { number: index + 1 })}
               />
@@ -139,9 +167,15 @@ export function AddWordForm({ onAdd, categories }: {
         ))}
       </div>
       {error ? (
-        <div role="alert" className="fixed bottom-5 right-5 z-50 flex max-w-sm items-start gap-4 rounded-xl border border-red-200 bg-white px-4 py-3 text-sm text-red-700 shadow-xl">
+        <div role="alert" className="essential-toast error">
           <span>{error}</span>
-          <button type="button" onClick={() => setError("")} aria-label={t("common.dismiss")}>×</button>
+          <button type="button" className="border-0 bg-transparent text-lg" onClick={() => setError("")} aria-label={t("common.dismiss")}>×</button>
+        </div>
+      ) : null}
+      {success ? (
+        <div role="status" className="essential-toast success">
+          <span>{success}</span>
+          <button type="button" className="border-0 bg-transparent text-lg" onClick={() => setSuccess("")} aria-label={t("common.dismiss")}>×</button>
         </div>
       ) : null}
       <button className="btn-primary mt-6" disabled={busy}>{busy ? t("common.saving") : t("add.save")}</button>
