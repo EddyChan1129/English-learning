@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/components/AppProvider";
 import { SpeechButton } from "@/components/SpeechButton";
@@ -8,20 +8,31 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { loadLearningPlanEntries } from "@/lib/firestore";
-import { ESSENTIAL_PLAN_ID, getFallbackPlan } from "@/lib/learning-plans";
+import { ESSENTIAL_PLAN_ID, filterLearningPlanEntries, getFallbackPlan } from "@/lib/learning-plans";
 import { isDuplicateVocabularyError, normalizeVocabularyKey } from "@/lib/vocabulary";
-import type { LearningPlanEntry } from "@/types";
+import { PARTS_OF_SPEECH, type LearningPlanEntry, type PartOfSpeech } from "@/types";
 
 type Notice = { type: "success" | "error"; message: string } | null;
+type SavedFilter = "all" | "saved" | "unsaved";
+type DueFilter = "all" | "due";
+type EntryOrder = "az" | "za";
+type PageSize = 100 | 200 | 500;
 
 export function LearningPlanLibrary({ slug }: { slug: string }) {
-  const { createWord, learningPlans, learningPlansLoaded, words } = useApp();
+  const { createWord, dueWords, learningPlans, learningPlansLoaded, words } = useApp();
   const { t, i18n } = useTranslation();
   const plan = learningPlans.find((item) => item.slug === slug) ?? getFallbackPlan(slug);
   const chinese = i18n.resolvedLanguage?.startsWith("zh");
   const [entries, setEntries] = useState<LearningPlanEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
+  const [entryOrder, setEntryOrder] = useState<EntryOrder>("az");
+  const [partFilter, setPartFilter] = useState<"all" | PartOfSpeech>("all");
+  const [savedFilter, setSavedFilter] = useState<SavedFilter>("all");
+  const [dueFilter, setDueFilter] = useState<DueFilter>("all");
+  const [pageSize, setPageSize] = useState<PageSize>(100);
+  const [page, setPage] = useState(1);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [locallyAdded, setLocallyAdded] = useState<string[]>([]);
   const [notice, setNotice] = useState<Notice>(null);
@@ -54,14 +65,29 @@ export function LearningPlanLibrary({ slug }: { slug: string }) {
   }, [plan]);
 
   const savedKeys = useMemo(() => new Set(words.map((word) => normalizeVocabularyKey(word.word))), [words]);
+  const dueKeys = useMemo(() => new Set(dueWords.map((word) => normalizeVocabularyKey(word.word))), [dueWords]);
+  const locallyAddedIds = useMemo(() => new Set(locallyAdded), [locallyAdded]);
   const filtered = useMemo(() => {
-    const search = query.trim().toLocaleLowerCase();
-    if (!search) return entries;
-    return entries.filter((entry) =>
-      [entry.term, entry.englishDefinition, ...entry.chineseMeanings, ...entry.synonyms]
-        .join(" ").toLocaleLowerCase().includes(search),
-    );
-  }, [entries, query]);
+    return filterLearningPlanEntries(entries, {
+      query: deferredQuery,
+      order: entryOrder,
+      part: partFilter,
+      saved: savedFilter,
+      dueOnly: dueFilter === "due",
+      savedKeys,
+      dueKeys,
+    });
+  }, [deferredQuery, dueFilter, dueKeys, entries, entryOrder, partFilter, savedFilter, savedKeys]);
+  const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const visibleEntries = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const rangeStart = filtered.length ? (currentPage - 1) * pageSize + 1 : 0;
+  const rangeEnd = Math.min(currentPage * pageSize, filtered.length);
+
+  function updateFilter(action: () => void) {
+    action();
+    setPage(1);
+  }
 
   async function addEntry(entry: LearningPlanEntry) {
     if (!plan) return;
@@ -109,17 +135,65 @@ export function LearningPlanLibrary({ slug }: { slug: string }) {
 
       <div className="essential-toolbar">
         <label className="search-field essential-search">
-          <span className="sr-only">{t("mustLearn.searchLabel")}</span>
+          <span className="sr-only">{t("plans.searchLabel")}</span>
           <span aria-hidden="true">⌕</span>
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={t("mustLearn.searchPlaceholder")} />
+          <input value={query} onChange={(event) => updateFilter(() => setQuery(event.target.value))} placeholder={t("mustLearn.searchPlaceholder")} />
         </label>
         <span>{loading ? t("plans.loading") : t("plans.resultCount", { count: filtered.length, total: entries.length })}</span>
       </div>
 
+      <section className="essential-filter-panel" aria-label={t("plans.filtersLabel")}>
+        <label>
+          <span>{t("plans.sortOrder")}</span>
+          <select value={entryOrder} onChange={(event) => updateFilter(() => setEntryOrder(event.target.value as EntryOrder))}>
+            <option value="az">{t("history.aToZ")}</option>
+            <option value="za">{t("history.zToA")}</option>
+          </select>
+        </label>
+        <label>
+          <span>{t("history.partOfSpeechFilter")}</span>
+          <select value={partFilter} onChange={(event) => updateFilter(() => setPartFilter(event.target.value as "all" | PartOfSpeech))}>
+            <option value="all">{t("history.allParts")}</option>
+            {PARTS_OF_SPEECH.map((part) => <option key={part} value={part}>{t(`partsOfSpeech.${part}`)}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>{t("plans.savedFilter")}</span>
+          <select value={savedFilter} onChange={(event) => updateFilter(() => setSavedFilter(event.target.value as SavedFilter))}>
+            <option value="all">{t("plans.allSaved")}</option>
+            <option value="saved">{t("plans.savedOnly")}</option>
+            <option value="unsaved">{t("plans.unsavedOnly")}</option>
+          </select>
+        </label>
+        <label>
+          <span>{t("plans.testFilter")}</span>
+          <select value={dueFilter} onChange={(event) => updateFilter(() => setDueFilter(event.target.value as DueFilter))}>
+            <option value="all">{t("plans.allTestStates")}</option>
+            <option value="due">{t("plans.dueOnly")}</option>
+          </select>
+        </label>
+        <label>
+          <span>{t("plans.pageSize")}</span>
+          <select value={pageSize} onChange={(event) => updateFilter(() => setPageSize(Number(event.target.value) as PageSize))}>
+            {([100, 200, 500] as const).map((size) => <option key={size} value={size}>{t("plans.perPage", { count: size })}</option>)}
+          </select>
+        </label>
+        <button type="button" className="btn-secondary" onClick={() => updateFilter(() => {
+          setQuery("");
+          setEntryOrder("az");
+          setPartFilter("all");
+          setSavedFilter("all");
+          setDueFilter("all");
+          setPageSize(100);
+        })}>{t("history.clearFilters")}</button>
+      </section>
+
+      {!loading && filtered.length ? <p className="essential-range">{t("plans.resultRange", { start: rangeStart, end: rangeEnd, total: filtered.length })}</p> : null}
+
       {loading ? <p className="py-20 text-center text-sm text-[var(--muted)]">{t("plans.loading")}</p> : filtered.length ? (
         <div className="essential-list">
-          {filtered.map((entry) => {
-            const added = locallyAdded.includes(entry.id) || savedKeys.has(normalizeVocabularyKey(entry.term));
+          {visibleEntries.map((entry) => {
+            const added = locallyAddedIds.has(entry.id) || savedKeys.has(normalizeVocabularyKey(entry.term));
             return (
               <Card key={entry.id} className="essential-card">
                 <details>
@@ -148,7 +222,15 @@ export function LearningPlanLibrary({ slug }: { slug: string }) {
             );
           })}
         </div>
-      ) : <div className="empty-state"><strong>{t("mustLearn.empty")}</strong></div>}
+      ) : <div className="empty-state"><strong>{t("plans.empty")}</strong></div>}
+
+      {filtered.length > pageSize ? (
+        <nav className="history-pagination" aria-label={t("history.paginationLabel")}>
+          <Button variant="outline" disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>{t("history.previousPage")}</Button>
+          <span>{t("history.pageStatus", { page: currentPage, total: pageCount })}</span>
+          <Button variant="outline" disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>{t("history.nextPage")}</Button>
+        </nav>
+      ) : null}
 
       {notice ? <div className={`essential-toast ${notice.type}`} role="status"><span>{notice.message}</span><Button variant="ghost" size="icon-sm" onClick={() => setNotice(null)} aria-label={t("common.dismiss")}>×</Button></div> : null}
     </div>

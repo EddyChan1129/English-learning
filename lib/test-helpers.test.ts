@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getSpellingHint, getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, shuffled } from "./test-helpers.ts";
+import { getSpellingHint, getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, makeWordTestQuestion, shuffled } from "./test-helpers.ts";
 
 test("supports multi-word targets in gap-fill tests", () => {
   assert.equal(makeGapSentence("I used to be very shy.", "used to be"), "I _____ very shy.");
@@ -24,6 +24,19 @@ test("finds regular, irregular, and slash alternatives in phrasal-verb examples"
     makeGapQuestion("The shelving was built in.", "Build In/Into"),
     { sentence: "The shelving was _____.", answer: "built in" },
   );
+});
+
+test("keeps the matching translation and full sentence with a gap-fill question", () => {
+  assert.deepEqual(makeWordTestQuestion({
+    word: "mop",
+    sentences: ["This sentence has no target.", "Use the mop to clean the wet floor."],
+    sentenceExplanations: ["呢句冇目標字。", "用地拖清潔濕咗嘅地板。"],
+  }), {
+    sentence: "Use the _____ to clean the wet floor.",
+    answer: "mop",
+    sourceSentence: "Use the mop to clean the wet floor.",
+    translation: "用地拖清潔濕咗嘅地板。",
+  });
 });
 
 test("shuffles a copy without changing the source list", () => {

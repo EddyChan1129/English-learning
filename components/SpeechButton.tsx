@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useApp } from "@/components/AppProvider";
-import { chooseSpeechVoice, hasPreferredSpeechVoice } from "@/lib/speech";
+import { chooseSpeechVoice, getSpeechRate, hasPreferredSpeechVoice } from "@/lib/speech";
 
 export function SpeechButton({ text, label, language }: { text: string; label?: string; language?: string }) {
   const { languagePreferences } = useApp();
@@ -26,7 +26,7 @@ export function SpeechButton({ text, label, language }: { text: string; label?: 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = chooseSpeechVoice(voices, speechLanguage);
       utterance.lang = speechLanguage;
-      utterance.rate = 1;
+      utterance.rate = getSpeechRate(speechLanguage);
       synthesis.speak(utterance);
     }
 

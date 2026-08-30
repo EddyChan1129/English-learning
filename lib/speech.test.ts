@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { chooseSpeechVoice, hasPreferredSpeechVoice } from "./speech.ts";
+import { chooseSpeechVoice, getSpeechRate, hasPreferredSpeechVoice } from "./speech.ts";
 
 test("prefers Google US English over other en-US voices", () => {
   const voices = [
@@ -12,4 +12,9 @@ test("prefers Google US English over other en-US voices", () => {
   assert.equal(chooseSpeechVoice(voices.slice(0, 1), "en-US")?.name, "Novelty Voice");
   assert.equal(hasPreferredSpeechVoice(voices, "en-US"), true);
   assert.equal(hasPreferredSpeechVoice(voices.slice(0, 1), "en-US"), false);
+});
+
+test("slows English speech for beginner learners", () => {
+  assert.equal(getSpeechRate("en-US"), 0.78);
+  assert.equal(getSpeechRate("zh-HK"), 1);
 });

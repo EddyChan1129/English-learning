@@ -2,6 +2,10 @@ type VoiceLike = { name: string; lang: string };
 
 const normalizeLanguage = (language: string) => language.replace("_", "-").toLowerCase();
 
+export function getSpeechRate(language: string): number {
+  return normalizeLanguage(language).startsWith("en") ? 0.78 : 1;
+}
+
 export function hasPreferredSpeechVoice<Voice extends VoiceLike>(voices: readonly Voice[], language: string): boolean {
   const normalizedLanguage = normalizeLanguage(language);
 

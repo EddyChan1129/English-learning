@@ -1,3 +1,5 @@
+import type { WordDocument } from "../types/index.ts";
+
 export function normalizeAnswer(value: string): string {
   return value.trim().toLocaleLowerCase("en-US").replace(/[.,!?;:'\"“”‘’]/g, "");
 }
@@ -108,6 +110,17 @@ export function makeGapQuestion(sentence: string, word: string): GapQuestion {
 
 export function makeGapSentence(sentence: string, word: string): string {
   return makeGapQuestion(sentence, word).sentence;
+}
+
+export function makeWordTestQuestion(word: Pick<WordDocument, "word" | "sentences" | "sentenceExplanations">) {
+  const matchingIndex = word.sentences.findIndex((sentence) => makeGapQuestion(sentence, word.word).sentence !== sentence);
+  const sentenceIndex = matchingIndex >= 0 ? matchingIndex : 0;
+  const sourceSentence = word.sentences[sentenceIndex] ?? "";
+  return {
+    ...makeGapQuestion(sourceSentence, word.word),
+    sourceSentence,
+    translation: word.sentenceExplanations[sentenceIndex] ?? "",
+  };
 }
 
 export function getSpellingHint(answer: string): string {

@@ -8,7 +8,7 @@ import { StageMascot } from "@/components/StageMascot";
 import { SpeechButton } from "@/components/SpeechButton";
 import { calculateTestUpdate } from "@/lib/spaced-repetition";
 import { playEvolutionSound } from "@/lib/evolution-sounds";
-import { getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion } from "@/lib/test-helpers";
+import { getSpellingHintCharacters, isWordAnswerCorrect, makeWordTestQuestion } from "@/lib/test-helpers";
 import type { Stage, WordDocument } from "@/types";
 
 type TestSessionProps = {
@@ -32,11 +32,8 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   useEffect(() => () => stopEvolutionSound.current?.(), []);
 
   const gapQuestion = useMemo(() => {
-    if (!current) return { sentence: "", answer: "" };
-    const source = current.sentences.find((sentence) =>
-      makeGapQuestion(sentence, current.word).sentence !== sentence,
-    ) ?? current.sentences[0];
-    return makeGapQuestion(source, current.word);
+    if (!current) return { sentence: "", answer: "", sourceSentence: "", translation: "" };
+    return makeWordTestQuestion(current);
   }, [current]);
 
   function check() {
@@ -101,7 +98,10 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
           <div>
             <p className="text-sm font-bold text-[var(--muted)]">{t("test.gapPrompt")}</p>
             <blockquote className="font-display mt-4 text-2xl font-medium leading-relaxed sm:text-3xl">“{gapQuestion.sentence}”</blockquote>
-            <p className="mt-3 text-sm text-[var(--muted)]">{t("test.hint", { meaning: current.chineseMeanings.join("；") })}</p>
+            {gapQuestion.translation ? <p className="test-sentence-translation" aria-label={t("test.translation")}>{gapQuestion.translation}</p> : null}
+            <p className="mt-3 text-sm text-[var(--muted)]">{current.synonyms.length
+              ? t("test.hint", { synonyms: current.synonyms.join(" · ") })
+              : t("test.noSynonymsHint")}</p>
             {isStageOneTest ? (
               <div className="mt-3">
                 {hintVisible ? (
@@ -152,6 +152,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
             skipped={outcome === "skipped"}
             word={current.word}
             correctAnswer={gapQuestion.answer}
+            answerSentence={gapQuestion.sourceSentence}
             evolves={mode === "formal" && outcome === "correct" && resultStage !== current.stage}
             busy={busy}
             onSkipAnimation={() => stopEvolutionSound.current?.()}
@@ -163,13 +164,14 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   );
 }
 
-function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, evolves, busy, onSkipAnimation, onContinue }: {
+function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, answerSentence, evolves, busy, onSkipAnimation, onContinue }: {
   from: Stage;
   to: Stage;
   passed: boolean;
   skipped: boolean;
   word: string;
   correctAnswer: string;
+  answerSentence: string;
   evolves: boolean;
   busy: boolean;
   onSkipAnimation: () => void;
@@ -227,7 +229,7 @@ function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, 
                   word: correctAnswer,
                   stage: t("common.stageName", { stage: from, label: t(`stages.${from}.label`) }),
                 })}</p>
-        {!passed ? <SpeechButton text={correctAnswer} label={t("test.listenCorrectAnswer")} /> : null}
+        {!passed ? <SpeechButton text={answerSentence} language="en-US" label={t("test.listenCorrectAnswer")} /> : null}
       </div>
       <Button onClick={onContinue} disabled={busy}>{busy ? t("common.saving") : t("test.continue")}</Button>
     </Card>
