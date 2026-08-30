@@ -2,6 +2,20 @@ import { PARTS_OF_SPEECH, type LearningPlan, type LearningPlanEntry, type PartOf
 
 const PLAN_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const MAX_ENTRIES = 2_000;
+const PART_OF_SPEECH_ALIASES: Record<string, PartOfSpeech> = {
+  "adjective phrase": "adjectivePhrase",
+  "adverbial phrase": "adverbialPhrase",
+  "conjunction phrase": "conjunctionPhrase",
+  "discourse phrase": "discoursePhrase",
+  "fixed phrase": "fixedPhrase",
+  "infinitive phrase": "infinitivePhrase",
+  "linking phrase": "linkingPhrase",
+  "phrasal verb": "phrasalVerb",
+  "prepositional phrase": "prepositionalPhrase",
+  "pronoun phrase": "pronounPhrase",
+  "quantifier phrase": "quantifierPhrase",
+  "verb phrase": "verbPhrase",
+};
 
 export function makeLearningPlanUpload(input: unknown): {
   plan: LearningPlan;
@@ -99,10 +113,11 @@ function stringArray(value: unknown, label: string, minimum: number, maximum: nu
 function partOfSpeechArray(value: unknown, label: string): PartOfSpeech[] {
   if (!Array.isArray(value) || !value.length) throw new Error(`${label} must contain at least one item.`);
   return value.map((part) => {
-    if (typeof part !== "string" || !PARTS_OF_SPEECH.includes(part as PartOfSpeech)) {
+    const normalizedPart = typeof part === "string" ? PART_OF_SPEECH_ALIASES[part] ?? part : part;
+    if (typeof normalizedPart !== "string" || !PARTS_OF_SPEECH.includes(normalizedPart as PartOfSpeech)) {
       throw new Error(`${label} contains an unsupported part of speech.`);
     }
-    return part as PartOfSpeech;
+    return normalizedPart as PartOfSpeech;
   });
 }
 

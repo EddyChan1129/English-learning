@@ -12,6 +12,18 @@ export const PARTS_OF_SPEECH = [
   "determiner",
   "auxiliaryVerb",
   "phrasalVerb",
+  "adjectivePhrase",
+  "adverbialPhrase",
+  "collocation",
+  "conjunctionPhrase",
+  "discoursePhrase",
+  "fixedPhrase",
+  "infinitivePhrase",
+  "linkingPhrase",
+  "prepositionalPhrase",
+  "pronounPhrase",
+  "quantifierPhrase",
+  "verbPhrase",
 ] as const;
 export type PartOfSpeech = (typeof PARTS_OF_SPEECH)[number];
 
@@ -27,6 +39,18 @@ export const PART_OF_SPEECH_ABBREVIATIONS: Record<PartOfSpeech, string> = {
   determiner: "DET",
   auxiliaryVerb: "AUX",
   phrasalVerb: "PHR.V",
+  adjectivePhrase: "ADJ.P",
+  adverbialPhrase: "ADV.P",
+  collocation: "COLL",
+  conjunctionPhrase: "CONJ.P",
+  discoursePhrase: "DISC.P",
+  fixedPhrase: "FIX.P",
+  infinitivePhrase: "INF.P",
+  linkingPhrase: "LINK.P",
+  prepositionalPhrase: "PREP.P",
+  pronounPhrase: "PRON.P",
+  quantifierPhrase: "QUANT.P",
+  verbPhrase: "V.P",
 };
 
 export interface WordDocument {

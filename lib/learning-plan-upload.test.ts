@@ -32,6 +32,14 @@ test("normalizes a learning-plan upload and derives entry metadata", () => {
   assert.ok(entries[0].searchTokens.includes("ability"));
 });
 
+test("preserves readable phrase categories as supported grammar roles", () => {
+  const { entries } = makeLearningPlanUpload({
+    ...validInput,
+    entries: [{ ...validInput.entries[0], partsOfSpeech: ["prepositional phrase", "collocation"] }],
+  });
+  assert.deepEqual(entries[0].partsOfSpeech, ["prepositionalPhrase", "collocation"]);
+});
+
 test("rejects incomplete or duplicate learning entries", () => {
   assert.throws(() => makeLearningPlanUpload({ ...validInput, entries: [] }), /between 1 and 2000/);
   assert.throws(() => makeLearningPlanUpload({ ...validInput, entries: Array(2_001).fill(validInput.entries[0]) }), /between 1 and 2000/);
