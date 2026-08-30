@@ -25,6 +25,7 @@ export function NewsReader({ article }: { article: NewsDocument }) {
   const [example, setExample] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showChinese, setShowChinese] = useState(true);
   const [notice, setNotice] = useState<{ word: string; wordId: string } | null>(null);
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -122,41 +123,69 @@ export function NewsReader({ article }: { article: NewsDocument }) {
   return (
     <div className="news-reader animate-rise">
       <Link href="/news" className="news-back-link">← {t("news.backToArchive")}</Link>
-      <article>
-        <header className="news-article-header">
-          <div className="news-date-stamp">
-            <span>{article.date.slice(0, 4)}</span>
-            <strong>{article.date.slice(5)}</strong>
-          </div>
-          <div>
-            <p className="eyebrow">{t("news.dailyEdition")}</p>
-            <h1>{article.title}</h1>
-            <p>{article.summary}</p>
-          </div>
-        </header>
-
-        <aside className="news-selection-guide" id="news-selection-guide">
-          <span aria-hidden="true">Aa</span>
-          <p><strong>{t("news.selectTitle")}</strong>{t("news.selectHint")}</p>
-        </aside>
-
-        <div
-          className="news-article-body"
-          aria-describedby="news-selection-guide"
-          onMouseUp={() => window.setTimeout(captureSelection)}
-          onKeyUp={captureSelection}
-          onTouchEnd={() => window.setTimeout(captureSelection, 50)}
-        >
-          {article.paragraphs.map((paragraph, index) => (
-            <p key={index} data-news-paragraph tabIndex={0}>{paragraph}</p>
-          ))}
+      <header className="news-edition-header">
+        <div className="news-date-stamp">
+          <span>{article.date.slice(0, 4)}</span>
+          <strong>{article.date.slice(5)}</strong>
         </div>
+        <div>
+          <p className="eyebrow">{t("news.dailyEdition")}</p>
+          <h1>{t("news.editionTitle")}</h1>
+          <p>{t("news.storyCount", { count: article.articles.length })}</p>
+        </div>
+        <button
+          type="button"
+          className="news-translation-toggle"
+          aria-pressed={showChinese}
+          onClick={() => setShowChinese((visible) => !visible)}
+        >
+          <span aria-hidden="true">中</span>
+          {showChinese ? t("news.hideChinese") : t("news.showChinese")}
+        </button>
+      </header>
 
-        <footer className="news-source-line">
-          <span>{t("news.source")}</span>
-          <a href={article.sourceUrl} target="_blank" rel="noreferrer">{article.sourceName} ↗</a>
-        </footer>
-      </article>
+      <aside className="news-selection-guide" id="news-selection-guide">
+        <span aria-hidden="true">Aa</span>
+        <p><strong>{t("news.selectTitle")}</strong>{t("news.selectHint")}</p>
+      </aside>
+
+      <div className="news-story-list">
+        {article.articles.map((story, storyIndex) => (
+          <article className="news-story" key={`${story.sourceUrl}-${storyIndex}`}>
+            <header className="news-story-header">
+              <p className="eyebrow">{t("news.storyLabel", { number: storyIndex + 1 })}</p>
+              <h2>{story.title}</h2>
+              <p className="news-story-summary">{story.summary}</p>
+              {showChinese && story.chineseMeaning ? (
+                <p className="news-chinese-summary" lang="zh-HK">
+                  <span>{t("news.chineseExplanation")}</span>
+                  {story.chineseMeaning}
+                </p>
+              ) : null}
+            </header>
+
+            <div
+              className="news-article-body"
+              aria-describedby="news-selection-guide"
+              onMouseUp={() => window.setTimeout(captureSelection)}
+              onKeyUp={captureSelection}
+              onTouchEnd={() => window.setTimeout(captureSelection, 50)}
+            >
+              {story.paragraphs.map((paragraph, paragraphIndex) => (
+                <div className="news-paragraph-pair" key={paragraphIndex}>
+                  <p data-news-paragraph tabIndex={0}>{paragraph.english}</p>
+                  {showChinese && paragraph.chinese ? <p className="news-chinese-paragraph" lang="zh-HK">{paragraph.chinese}</p> : null}
+                </div>
+              ))}
+            </div>
+
+            <footer className="news-source-line">
+              <span>{t("news.source")}</span>
+              <a href={story.sourceUrl} target="_blank" rel="noreferrer">{story.sourceName} ↗</a>
+            </footer>
+          </article>
+        ))}
+      </div>
 
       {selection ? (
         <div

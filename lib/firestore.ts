@@ -18,6 +18,7 @@ import { calculateTestUpdate } from "./spaced-repetition";
 import { DUPLICATE_VOCABULARY_ERROR, normalizeVocabularyKey } from "./vocabulary";
 import { makeCopiedWord } from "./word-copy";
 import { normalizeLanguagePreferences } from "./languages";
+import { normalizeStoredNewsDocument } from "./news";
 import { normalizeUsername } from "./usernames";
 import type { FriendDocument, FriendRequestDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewsDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
@@ -83,14 +84,15 @@ export async function loadPublishedNews(): Promise<NewsDocument[]> {
     limit(365),
   ));
   return snapshot.docs
-    .map((item) => ({ ...item.data(), id: item.id }) as NewsDocument)
+    .map((item) => normalizeStoredNewsDocument(item.id, item.data()))
+    .filter((item): item is NewsDocument => item !== null)
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
 export async function loadPublishedNewsDay(dayId: string): Promise<NewsDocument | null> {
   const snapshot = await getDoc(doc(requireDb(), "news", dayId));
-  if (!snapshot.exists() || snapshot.data().published !== true) return null;
-  return { ...snapshot.data(), id: snapshot.id } as NewsDocument;
+  if (!snapshot.exists()) return null;
+  return normalizeStoredNewsDocument(snapshot.id, snapshot.data());
 }
 
 export async function ensureUserProfile(uid: string, email: string | null): Promise<UserProfile> {

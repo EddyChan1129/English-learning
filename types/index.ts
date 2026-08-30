@@ -116,22 +116,29 @@ export interface LearningPlanEntry {
   searchTokens: string[];
 }
 
+export interface NewsParagraph {
+  english: string;
+  chinese: string;
+}
+
+export interface NewsArticle {
+  title: string;
+  summary: string;
+  chineseMeaning: string;
+  paragraphs: NewsParagraph[];
+  sourceName: string;
+  sourceUrl: string;
+}
+
 export interface NewsDocument {
   id: string;
   date: string;
-  title: string;
-  summary: string;
-  paragraphs: string[];
-  sourceName: string;
-  sourceUrl: string;
+  articles: NewsArticle[];
   publishedAt: string;
   published: boolean;
 }
 
-export type NewsUploadInput = Pick<
-  NewsDocument,
-  "title" | "summary" | "paragraphs" | "sourceName" | "sourceUrl"
->;
+export type NewsUploadInput = NewsArticle[];
 
 export interface UserTarget {
   targetWords: number;

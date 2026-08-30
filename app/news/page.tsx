@@ -40,10 +40,10 @@ export default function NewsArchivePage() {
               <span className="news-archive-index">{String(index + 1).padStart(2, "0")}</span>
               <span className="news-archive-copy">
                 <time dateTime={article.date}>{formatNewsDate(article.date, i18n.resolvedLanguage)}</time>
-                <strong>{article.title}</strong>
-                <small>{article.summary}</small>
+                <strong>{article.articles[0].title}</strong>
+                <small>{article.articles[0].summary}</small>
               </span>
-              <span className="news-archive-source">{article.sourceName}</span>
+              <span className="news-archive-source">{t("news.storyCount", { count: article.articles.length })}</span>
               <span className="news-archive-arrow" aria-hidden="true">↗</span>
             </Link>
           </li>

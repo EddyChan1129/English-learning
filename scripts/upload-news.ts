@@ -40,4 +40,4 @@ await database.runTransaction(async (transaction) => {
   transaction.set(reference, news);
 });
 
-console.log(`${replace ? "Published or replaced" : "Published"} news/${dayId}: ${news.title}`);
+console.log(`${replace ? "Published or replaced" : "Published"} news/${dayId}: ${news.articles.length} article(s)`);

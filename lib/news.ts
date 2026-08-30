@@ -1,6 +1,7 @@
-import type { NewsDocument, NewsUploadInput } from "@/types";
+import type { NewsArticle, NewsDocument, NewsParagraph, NewsUploadInput } from "@/types";
 
 const NEWS_DAY_ID_PATTERN = /^days-(20\d{2}-\d{2}-\d{2})$/;
+const MAX_ARTICLES = 20;
 const MAX_PARAGRAPHS = 200;
 const MAX_ARTICLE_CHARACTERS = 200_000;
 
@@ -11,10 +12,28 @@ export function makeNewsDocument(dayId: string, input: unknown, publishedAt: str
   return {
     id: dayId,
     date,
-    ...validateNewsUploadInput(input),
+    articles: validateNewsUploadInput(input),
     publishedAt,
     published: true,
   };
+}
+
+export function normalizeStoredNewsDocument(dayId: string, input: unknown): NewsDocument | null {
+  try {
+    if (!input || typeof input !== "object" || Array.isArray(input)) return null;
+    const data = input as Record<string, unknown>;
+    if (data.published !== true) return null;
+    const articles = validateNewsUploadInput(Array.isArray(data.articles) ? data.articles : data);
+    return {
+      id: dayId,
+      date: newsDateFromDayId(dayId),
+      articles,
+      publishedAt: typeof data.publishedAt === "string" ? data.publishedAt : "",
+      published: true,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export function newsDateFromDayId(dayId: string) {
@@ -55,26 +74,36 @@ export function sentenceAtOffset(text: string, offset: number) {
 }
 
 export function validateNewsUploadInput(input: unknown): NewsUploadInput {
+  if (Array.isArray(input)) {
+    if (!input.length) throw new Error("News file must contain at least one article.");
+    if (input.length > MAX_ARTICLES) throw new Error(`News file cannot contain more than ${MAX_ARTICLES} articles.`);
+    return input.map((article, index) => validateNewsArticle(article, `articles[${index}]`, true));
+  }
+  return [validateNewsArticle(input, "article", false)];
+}
+
+function validateNewsArticle(input: unknown, label: string, bilingual: boolean): NewsArticle {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
-    throw new Error("News file must contain a JSON object.");
+    throw new Error(`${label} must be a JSON object.`);
   }
 
   const data = input as Record<string, unknown>;
-  const title = requiredString(data, "title", 180);
-  const summary = requiredString(data, "summary", 600);
-  const sourceName = requiredString(data, "sourceName", 120);
-  const sourceUrl = requiredString(data, "sourceUrl", 2_000);
-  if (!Array.isArray(data.paragraphs) || data.paragraphs.some((paragraph) => typeof paragraph !== "string")) {
-    throw new Error("paragraphs must be an array of plain-text strings.");
-  }
+  const title = requiredString(data, "title", 180, label);
+  const summary = requiredString(data, "summary", 600, label);
+  const chineseMeaning = bilingual ? requiredString(data, "chineseMeaning", 600, label) : optionalString(data, "chineseMeaning", 600, label);
+  const sourceName = requiredString(data, "sourceName", 120, label);
+  const sourceUrl = requiredString(data, "sourceUrl", 2_000, label);
+  if (!Array.isArray(data.paragraphs)) throw new Error(`${label}.paragraphs must be an array.`);
   if (data.paragraphs.length > MAX_PARAGRAPHS) {
-    throw new Error(`paragraphs cannot contain more than ${MAX_PARAGRAPHS} items.`);
+    throw new Error(`${label}.paragraphs cannot contain more than ${MAX_PARAGRAPHS} items.`);
   }
 
-  const paragraphs = data.paragraphs.map((paragraph) => paragraph.trim()).filter(Boolean);
-  if (!paragraphs.length) throw new Error("paragraphs must contain at least one non-empty paragraph.");
-  if (paragraphs.join("").length > MAX_ARTICLE_CHARACTERS) {
-    throw new Error("News article is too long for one Firestore document.");
+  const paragraphs = data.paragraphs
+    .map((paragraph, index) => validateNewsParagraph(paragraph, `${label}.paragraphs[${index}]`, bilingual))
+    .filter((paragraph) => paragraph.english);
+  if (!paragraphs.length) throw new Error(`${label}.paragraphs must contain at least one non-empty paragraph.`);
+  if (paragraphs.reduce((length, paragraph) => length + paragraph.english.length + paragraph.chinese.length, 0) > MAX_ARTICLE_CHARACTERS) {
+    throw new Error(`${label} is too long for one Firestore document.`);
   }
 
   let parsedSourceUrl: URL;
@@ -87,13 +116,37 @@ export function validateNewsUploadInput(input: unknown): NewsUploadInput {
     throw new Error("sourceUrl must use http or https.");
   }
 
-  return { title, summary, paragraphs, sourceName, sourceUrl };
+  return { title, summary, chineseMeaning, paragraphs, sourceName, sourceUrl };
 }
 
-function requiredString(data: Record<string, unknown>, key: string, maxLength: number) {
+function validateNewsParagraph(input: unknown, label: string, bilingual: boolean): NewsParagraph {
+  if (typeof input === "string" && !bilingual) return { english: input.trim(), chinese: "" };
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    throw new Error(`${label} must contain English and Chinese text.`);
+  }
+  const data = input as Record<string, unknown>;
+  return {
+    english: requiredString(data, "english", MAX_ARTICLE_CHARACTERS, label),
+    chinese: bilingual
+      ? requiredString(data, "chinese", MAX_ARTICLE_CHARACTERS, label)
+      : optionalString(data, "chinese", MAX_ARTICLE_CHARACTERS, label),
+  };
+}
+
+function requiredString(data: Record<string, unknown>, key: string, maxLength: number, label?: string) {
   const value = data[key];
-  if (typeof value !== "string" || !value.trim()) throw new Error(`${key} is required.`);
+  const field = label ? `${label}.${key}` : key;
+  if (typeof value !== "string" || !value.trim()) throw new Error(`${field} is required.`);
   const cleanValue = value.trim();
-  if (cleanValue.length > maxLength) throw new Error(`${key} cannot exceed ${maxLength} characters.`);
+  if (cleanValue.length > maxLength) throw new Error(`${field} cannot exceed ${maxLength} characters.`);
+  return cleanValue;
+}
+
+function optionalString(data: Record<string, unknown>, key: string, maxLength: number, label: string) {
+  const value = data[key];
+  if (value === undefined) return "";
+  if (typeof value !== "string") throw new Error(`${label}.${key} must be a string.`);
+  const cleanValue = value.trim();
+  if (cleanValue.length > maxLength) throw new Error(`${label}.${key} cannot exceed ${maxLength} characters.`);
   return cleanValue;
 }
