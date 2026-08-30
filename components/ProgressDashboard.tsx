@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { useTranslation } from "react-i18next";
 import { daysElapsed, isDue, toLocalDate } from "@/lib/date";
+import { getLearningTargetProgress } from "@/lib/learning-target";
 import type { UserTarget, WordDocument } from "@/types";
 
 export function ProgressDashboard({ target, words }: { target: UserTarget; words: WordDocument[] }) {
   const { t } = useTranslation();
   const today = toLocalDate();
-  const mastered = words.filter((word) => word.status === "mastered").length;
+  const { mastered } = getLearningTargetProgress(target, words, today);
   const due = words.filter((word) => word.status === "learning" && isDue(word.nextTestDate)).length;
   const day = Math.min(daysElapsed(target.startDate, today), target.targetDays);
   const wordProgress = percentage(mastered, target.targetWords);

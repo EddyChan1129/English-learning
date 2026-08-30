@@ -20,7 +20,7 @@ export function TargetForm({ initial, onSave }: TargetFormProps) {
     event.preventDefault();
     setBusy(true);
     try {
-      await onSave({ targetWords, targetDays, startDate: initial?.startDate ?? toLocalDate() });
+      await onSave({ ...initial, targetWords, targetDays, startDate: initial?.startDate ?? toLocalDate() });
     } finally {
       setBusy(false);
     }

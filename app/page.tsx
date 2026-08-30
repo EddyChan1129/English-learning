@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddWordForm } from "@/components/AddWordForm";
 import { ProgressDashboard } from "@/components/ProgressDashboard";
@@ -7,10 +8,12 @@ import { Card } from "@/components/ui/card";
 import { StageProgress } from "@/components/StageProgress";
 import { TargetForm } from "@/components/TargetForm";
 import { useApp } from "@/components/AppProvider";
+import { getLearningTargetProgress } from "@/lib/learning-target";
 import type { Stage, WordDocument } from "@/types";
 
 export default function HomePage() {
-  const { target, targetLoaded, words, vocabularyCategories, saveLearningTarget, createWord, dueWords } = useApp();
+  const { target, targetLoaded, words, wordsLoaded, vocabularyCategories, saveLearningTarget, createWord, dueWords } = useApp();
+  const [expiredAction, setExpiredAction] = useState<"prompt" | "continue" | "new">("prompt");
   const { t } = useTranslation();
 
   if (!targetLoaded) return <PageLoading />;
@@ -20,6 +23,38 @@ export default function HomePage() {
       <div className="mx-auto max-w-2xl pt-8">
         <TargetForm onSave={saveLearningTarget} />
       </div>
+    );
+  }
+
+  const totalMastered = words.filter((word) => word.status === "mastered").length;
+  const { mastered: planProgress, complete, expired } = getLearningTargetProgress(target, words);
+  const planComplete = wordsLoaded && complete;
+  const planExpired = wordsLoaded && expired;
+  const startNewPlan = (nextTarget: Parameters<typeof saveLearningTarget>[0]) => saveLearningTarget({
+    ...nextTarget,
+    startingMastered: totalMastered,
+  });
+
+  if (planComplete) {
+    return (
+      <PlanMilestone kind="complete" progress={planProgress} target={target.targetWords}>
+        <TargetForm onSave={startNewPlan} />
+      </PlanMilestone>
+    );
+  }
+
+  if (planExpired && expiredAction !== "continue") {
+    return (
+      <PlanMilestone kind="expired" progress={planProgress} target={target.targetWords}>
+        {expiredAction === "new" ? (
+          <TargetForm onSave={startNewPlan} />
+        ) : (
+          <div className="plan-milestone-actions">
+            <button className="btn-primary" onClick={() => setExpiredAction("continue")}>{t("planMilestone.keepGoing")}</button>
+            <button className="btn-secondary" onClick={() => setExpiredAction("new")}>{t("planMilestone.startAnother")}</button>
+          </div>
+        )}
+      </PlanMilestone>
     );
   }
 
@@ -54,6 +89,30 @@ export default function HomePage() {
         <AddWordForm onAdd={createWord} categories={vocabularyCategories} />
       </section>
     </div>
+  );
+}
+
+function PlanMilestone({ kind, progress, target, children }: {
+  kind: "complete" | "expired";
+  progress: number;
+  target: number;
+  children: React.ReactNode;
+}) {
+  const { t } = useTranslation();
+  const complete = kind === "complete";
+  return (
+    <section className={`plan-milestone ${kind} animate-rise`}>
+      <div className="plan-milestone-message">
+        <StageProgress currentStage={complete ? 3 : 2} />
+        <p className="eyebrow">{t(`planMilestone.${kind}.eyebrow`)}</p>
+        <h1>{t(`planMilestone.${kind}.title`)}</h1>
+        <p>{t(`planMilestone.${kind}.description`, { progress, target })}</p>
+      </div>
+      <div className="plan-milestone-next">
+        <h2>{t(complete ? "planMilestone.nextTitle" : "planMilestone.chooseTitle")}</h2>
+        {children}
+      </div>
+    </section>
   );
 }
 

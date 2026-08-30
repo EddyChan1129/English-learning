@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getSpellingHint, getSpellingHintCharacters, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, makeWordTestQuestion, shuffled } from "./test-helpers.ts";
+import { getSpellingHint, getSpellingHintCharacters, getVerbEndingHint, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, makeWordTestQuestion, shuffled } from "./test-helpers.ts";
 
 test("supports multi-word targets in gap-fill tests", () => {
   assert.equal(makeGapSentence("I used to be very shy.", "used to be"), "I _____ very shy.");
@@ -13,6 +13,15 @@ test("uses the complete inflected word as the gap answer", () => {
     { sentence: "The system was _____ by hackers.", answer: "breached" },
   );
   assert.equal(isWordAnswerCorrect("breached", makeGapQuestion("The system was breached.", "breach").answer), true);
+});
+
+test("identifies regular verb endings without flagging an unchanged root", () => {
+  assert.equal(getVerbEndingHint("uses", "use"), "s");
+  assert.equal(getVerbEndingHint("studies", "study"), "s");
+  assert.equal(getVerbEndingHint("breached", "breach"), "ed");
+  assert.equal(getVerbEndingHint("tried", "try"), "ed");
+  assert.equal(getVerbEndingHint("pass", "pass"), null);
+  assert.equal(getVerbEndingHint("went", "go"), null);
 });
 
 test("finds regular, irregular, and slash alternatives in phrasal-verb examples", () => {

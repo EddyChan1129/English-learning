@@ -8,7 +8,7 @@ import { StageMascot } from "@/components/StageMascot";
 import { SpeechButton } from "@/components/SpeechButton";
 import { calculateTestUpdate } from "@/lib/spaced-repetition";
 import { playEvolutionSound } from "@/lib/evolution-sounds";
-import { getSpellingHintCharacters, isWordAnswerCorrect, makeWordTestQuestion } from "@/lib/test-helpers";
+import { getSpellingHintCharacters, getVerbEndingHint, isWordAnswerCorrect, makeWordTestQuestion } from "@/lib/test-helpers";
 import type { Stage, WordDocument } from "@/types";
 
 type TestSessionProps = {
@@ -19,6 +19,7 @@ type TestSessionProps = {
 };
 
 type TestOutcome = "correct" | "incorrect" | "skipped" | null;
+const VERB_PARTS = new Set(["verb", "phrasalVerb", "verbPhrase", "auxiliaryVerb"]);
 
 export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps) {
   const current = words[0];
@@ -75,6 +76,9 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   }
 
   const isStageOneTest = mode === "formal" && current.stage === 0;
+  const verbEndingHint = current.partsOfSpeech.some((part) => VERB_PARTS.has(part))
+    ? getVerbEndingHint(gapQuestion.answer, current.word)
+    : null;
   const resultStage = outcome === null || mode === "random"
     ? current.stage
     : calculateTestUpdate(current.stage, outcome === "correct", new Date(0).toISOString()).stage;
@@ -102,6 +106,9 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
             <p className="mt-3 text-sm text-[var(--muted)]">{current.synonyms.length
               ? t("test.hint", { synonyms: current.synonyms.join(" · ") })
               : t("test.noSynonymsHint")}</p>
+            {verbEndingHint ? (
+              <p className="grammar-hint" role="note">{t(`test.verbEndingHint.${verbEndingHint}`)}</p>
+            ) : null}
             {isStageOneTest ? (
               <div className="mt-3">
                 {hintVisible ? (

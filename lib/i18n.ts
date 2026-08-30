@@ -233,6 +233,22 @@ const resources = {
                 upToDate: "Everything is up to date.",
                 summary: "Learning progress summary",
             },
+            planMilestone: {
+                complete: {
+                    eyebrow: "Plan complete",
+                    title: "Congratulations — you made it!",
+                    description: "You mastered {{progress}} of {{target}} entries. Set your next plan while the momentum is yours.",
+                },
+                expired: {
+                    eyebrow: "Plan check-in",
+                    title: "The deadline is here. Keep going.",
+                    description: "You mastered {{progress}} of {{target}} entries. Finish this plan at your own pace, or choose a fresh target.",
+                },
+                nextTitle: "Start another plan",
+                chooseTitle: "What would you like to do?",
+                keepGoing: "Keep going with this plan",
+                startAnother: "Set a new plan",
+            },
             add: {
                 eyebrow: "New vocabulary",
                 title: "Add a word or phrase worth keeping",
@@ -345,6 +361,10 @@ const resources = {
                 showSpellingHint: "Show spelling hint",
                 spellingHint: "Spelling hint: {{hint}}",
                 spellingHintLabel: "Spelling hint:",
+                verbEndingHint: {
+                    s: "Grammar reminder: this sentence needs the third-person -s verb form.",
+                    ed: "Grammar reminder: this sentence needs the past-tense -ed verb form.",
+                },
                 listenCorrectAnswer: "Hear the full sentence",
                 currentEvolution: "Current evolution stage",
                 practiceStage: "Random practice · Stage unchanged",
@@ -787,6 +807,22 @@ const resources = {
                 upToDate: "所有進度已更新。",
                 summary: "學習進度摘要",
             },
+            planMilestone: {
+                complete: {
+                    eyebrow: "計劃完成",
+                    title: "恭喜你，完成目標！",
+                    description: "你已掌握 {{progress}} / {{target}} 個項目。趁住呢股衝勁，設定下一個計劃啦。",
+                },
+                expired: {
+                    eyebrow: "計劃回顧",
+                    title: "到期喇，繼續加油！",
+                    description: "你已掌握 {{progress}} / {{target}} 個項目。你可以照自己步伐完成目前計劃，或者設定一個新目標。",
+                },
+                nextTitle: "開始另一個計劃",
+                chooseTitle: "下一步想點做？",
+                keepGoing: "繼續完成目前計劃",
+                startAnother: "設定新計劃",
+            },
             add: {
                 eyebrow: "新增詞彙",
                 title: "加入值得記住嘅字或短語",
@@ -897,6 +933,10 @@ const resources = {
                 showSpellingHint: "提示點串",
                 spellingHint: "串法提示：{{hint}}",
                 spellingHintLabel: "串法提示：",
+                verbEndingHint: {
+                    s: "文法提示：呢句要用第三身單數動詞，記得加 -s。",
+                    ed: "文法提示：呢句要用過去式動詞，記得 -ed 詞尾。",
+                },
                 listenCorrectAnswer: "朗讀完整例句",
                 currentEvolution: "目前進化階段",
                 practiceStage: "隨機練習 · Stage 不變",

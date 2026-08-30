@@ -170,6 +170,19 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .due-sheet { display: flex; min-height: 11rem; flex-direction: column; justify-content: space-between; border: 1px solid var(--ink); background: var(--violet); padding: 1.25rem; color: white; box-shadow: 5px 5px 0 var(--highlight); }
 .mobile-progress-summary { display: none; }
 
+.plan-milestone { display: grid; min-height: calc(100vh - 12rem); grid-template-columns: minmax(0, 1fr) minmax(20rem, .78fr); align-items: center; gap: clamp(2rem, 6vw, 5rem); }
+.plan-milestone-message { position: relative; padding: 2rem 0 2rem 2rem; border-left: .55rem solid var(--gold); }
+.plan-milestone.expired .plan-milestone-message { border-left-color: var(--violet); }
+.plan-milestone-message .stage-journey { max-width: 32rem; margin-bottom: 2rem; }
+.plan-milestone-message h1 { max-width: 42rem; margin-top: .65rem; font-family: var(--font-display), serif; font-size: clamp(3rem, 7vw, 6.5rem); font-weight: 650; line-height: .88; letter-spacing: -.045em; }
+.plan-milestone-message > p:last-child { max-width: 36rem; margin-top: 1.4rem; color: var(--muted); font-size: 1rem; line-height: 1.7; }
+.plan-milestone-next { display: grid; gap: 1rem; }
+.plan-milestone-next > h2 { font-family: var(--font-display), serif; font-size: 1.7rem; }
+.plan-milestone-next form { box-shadow: 7px 7px 0 var(--highlight); }
+.plan-milestone-actions { display: grid; gap: .8rem; }
+.plan-milestone-actions button { min-height: 3.25rem; }
+.grammar-hint { width: fit-content; margin-top: .75rem; border-left: 3px solid var(--gold); background: #fff8dc; padding: .6rem .75rem; color: #684b15; font-size: .75rem; font-weight: 750; line-height: 1.45; }
+
 .stage-mascot { display: block; max-width: 100%; object-fit: contain; }
 .stage-mascot.phoenix { filter: drop-shadow(0 0 10px rgba(239, 184, 63, .35)); }
 .stage-journey { min-width: 0; border-color: rgba(201, 86, 47, .18); background: rgba(255, 255, 255, .76); padding: .42rem .55rem; box-shadow: none; }
@@ -652,6 +665,7 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 :root[data-theme="dark"] .stage-journey-step.current .stage-journey-image { background: #332b1e; }
 :root[data-theme="dark"] .note-panel { background: #4d3d20; }
 :root[data-theme="dark"] .due-sheet { border-color: #9b8ae5; background: #493785; color: #fff; box-shadow: 5px 5px 0 #8e621f; }
+:root[data-theme="dark"] .grammar-hint { background: #3a301b; color: #f2d691; }
 :root[data-theme="dark"] .optional-badge { border-color: #62b899; background: #164536; color: #d0f9e8; }
 :root[data-theme="dark"] .language-switcher button.active,
 :root[data-theme="dark"] .filter-tabs button.active { background: var(--ink); color: var(--paper); }
@@ -735,6 +749,9 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
   .mobile-review-link { display: flex; min-height: 2.75rem; align-items: center; justify-content: center; margin-top: .8rem; border: 1px solid var(--ink); background: var(--violet); color: white; font-size: .76rem; font-weight: 800; text-decoration: none; }
   .mobile-up-to-date { display: flex; align-items: center; gap: .5rem; margin-top: .75rem; color: var(--green); font-size: .72rem; font-weight: 800; }
   .mobile-up-to-date span { display: grid; width: 1.25rem; height: 1.25rem; place-items: center; border-radius: 50%; background: var(--mint); }
+  .plan-milestone { min-height: auto; grid-template-columns: 1fr; gap: 2rem; padding-block: 1.5rem 3rem; }
+  .plan-milestone-message { padding: 1.25rem 0 1.25rem 1rem; }
+  .plan-milestone-message h1 { font-size: clamp(2.7rem, 14vw, 4.4rem); }
   .word-form { padding: 1.15rem; border-radius: .75rem; }
   .word-form h2 { font-size: 2rem; line-height: 1; }
   .word-form .field { padding: .72rem .78rem; }

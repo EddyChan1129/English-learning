@@ -144,6 +144,7 @@ export interface UserTarget {
   targetWords: number;
   targetDays: number;
   startDate: string;
+  startingMastered?: number;
 }
 
 export type SupportedLanguageCode = "en-US" | "zh-HK" | "zh-CN" | "fr-FR" | "es-ES" | "de-DE" | "ja-JP" | "ko-KR";

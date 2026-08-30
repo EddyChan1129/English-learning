@@ -57,8 +57,18 @@ function isInflectedForm(candidate: string, root: string): boolean {
   if (INFLECTION_SUFFIXES.some((suffix) => value === `${base}${suffix}`)) return true;
   if (base.endsWith("e") && value === `${base.slice(0, -1)}ing`) return true;
   if (base.endsWith("y") && value === `${base.slice(0, -1)}ies`) return true;
+  if (base.endsWith("y") && value === `${base.slice(0, -1)}ied`) return true;
   const finalLetter = base.at(-1);
   return Boolean(finalLetter && ["ed", "ing"].some((suffix) => value === `${base}${finalLetter}${suffix}`));
+}
+
+export function getVerbEndingHint(answer: string, root: string): "s" | "ed" | null {
+  const answerVerb = normalizeAnswer(answer).split(" ")[0];
+  const rootVerbs = normalizeAnswer(root).split(" ")[0].split("/");
+  if (!answerVerb || rootVerbs.includes(answerVerb)) return null;
+  if (!rootVerbs.some((rootVerb) => isInflectedForm(answerVerb, rootVerb))) return null;
+  if (answerVerb.endsWith("ed")) return "ed";
+  return answerVerb.endsWith("s") ? "s" : null;
 }
 
 export function makeGapQuestion(sentence: string, word: string): GapQuestion {
