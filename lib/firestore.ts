@@ -71,7 +71,7 @@ export async function loadLearningPlanEntries(planId: string): Promise<LearningP
   const snapshot = await getDocs(query(
     collection(requireDb(), "learningPlans", planId, "entries"),
     orderBy("order", "asc"),
-    limit(1000),
+    limit(2000),
   ));
   return snapshot.docs.map((item) => ({ ...item.data(), id: item.id }) as LearningPlanEntry);
 }

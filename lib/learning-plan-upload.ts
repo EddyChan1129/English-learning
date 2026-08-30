@@ -1,7 +1,7 @@
 import { PARTS_OF_SPEECH, type LearningPlan, type LearningPlanEntry, type PartOfSpeech } from "../types/index.ts";
 
 const PLAN_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const MAX_ENTRIES = 1_000;
+const MAX_ENTRIES = 2_000;
 
 export function makeLearningPlanUpload(input: unknown): {
   plan: LearningPlan;

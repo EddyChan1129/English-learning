@@ -33,7 +33,8 @@ test("normalizes a learning-plan upload and derives entry metadata", () => {
 });
 
 test("rejects incomplete or duplicate learning entries", () => {
-  assert.throws(() => makeLearningPlanUpload({ ...validInput, entries: [] }), /between 1 and 1000/);
+  assert.throws(() => makeLearningPlanUpload({ ...validInput, entries: [] }), /between 1 and 2000/);
+  assert.throws(() => makeLearningPlanUpload({ ...validInput, entries: Array(2_001).fill(validInput.entries[0]) }), /between 1 and 2000/);
   assert.throws(() => makeLearningPlanUpload({ ...validInput, entries: [validInput.entries[0], validInput.entries[0]] }), /Duplicate term/);
   assert.throws(() => makeLearningPlanUpload({
     ...validInput,

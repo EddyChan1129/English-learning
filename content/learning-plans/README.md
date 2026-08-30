@@ -1,6 +1,6 @@
 # Learning plan uploads
 
-Each JSON file contains one plan and up to 1,000 entries. Every entry requires an English definition, at least one Chinese meaning, at least one synonym, a supported part of speech, and exactly two bilingual examples.
+Each JSON file contains one plan and up to 2,000 entries. Every entry requires an English definition, at least one Chinese meaning, at least one synonym, a supported part of speech, and exactly two bilingual examples.
 
 Upload a new plan:
 
