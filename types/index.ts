@@ -162,6 +162,22 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export type SentenceVerdict = "correct" | "correct_with_feedback" | "incorrect";
+
+export interface SentenceEvaluation {
+  verdict: SentenceVerdict;
+  correctedSentence: string;
+  feedback: string;
+  targetWordUsed: boolean;
+  model: string;
+}
+
+export type NewSentenceAttempt = SentenceEvaluation & {
+  wordId: string;
+  targetWord: string;
+  sentence: string;
+};
+
 export interface FriendDocument {
   uid: string;
   displayName: string;

@@ -1,4 +1,5 @@
 import {
+  addDoc,
   arrayUnion,
   collection,
   doc,
@@ -20,7 +21,7 @@ import { makeCopiedWord } from "./word-copy";
 import { normalizeLanguagePreferences } from "./languages";
 import { normalizeStoredNewsDocument } from "./news";
 import { normalizeUsername } from "./usernames";
-import type { FriendDocument, FriendRequestDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewsDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
+import type { FriendDocument, FriendRequestDocument, LanguagePreferences, LearningPlan, LearningPlanEntry, NewSentenceAttempt, NewsDocument, NewWord, UserProfile, UserTarget, WordDocument } from "@/types";
 
 function requireDb() {
   if (!db) throw new Error("Firebase is not configured.");
@@ -338,5 +339,12 @@ export async function recordTestResult(
       ...calculateTestUpdate(word.stage, passed, new Date().toISOString()),
       lastTestUsedHint: usedHint,
     });
+  });
+}
+
+export async function recordSentenceAttempt(uid: string, attempt: NewSentenceAttempt) {
+  await addDoc(collection(requireDb(), "users", uid, "sentenceAttempts"), {
+    ...attempt,
+    createdAt: new Date().toISOString(),
   });
 }

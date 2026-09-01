@@ -450,6 +450,9 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 .feedback { margin-top: 1rem; border: 1px solid; padding: .8rem 1rem; font-size: .82rem; }
 .feedback.success { border-color: #8ed5b9; background: #eefaf5; color: #195743; }
 .feedback.error { border-color: #e6aeb3; background: #fff5f5; color: #8e2933; }
+.sentence-evaluation { margin-top: 1.5rem; border: 1px solid; padding: 1.25rem; }
+.sentence-evaluation.passed { border-color: #8ed5b9; background: #eefaf5; color: #195743; }
+.sentence-evaluation.needs-work { border-color: #e3bd6d; background: #fff8e7; color: #704b12; }
 .section-rule { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--ink); padding-bottom: .7rem; }
 .section-rule span { display: grid; width: 1.7rem; height: 1.7rem; place-items: center; border: 1px solid var(--ink); background: var(--highlight); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .7rem; font-weight: 800; }
 .friend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; }
@@ -647,6 +650,8 @@ a, button, input, textarea { outline-color: var(--violet); outline-offset: 3px; 
 :root[data-theme="dark"] .stage-badge.mastered { border-color: #8e6d2d; background: #392f1b; color: #f2cf7b; }
 :root[data-theme="dark"] .btn-danger,
 :root[data-theme="dark"] .feedback.error { background: #3b2025; color: #ffb4ba; }
+:root[data-theme="dark"] .sentence-evaluation.passed { border-color: #479b7d; background: #17392f; color: #c7f5e3; }
+:root[data-theme="dark"] .sentence-evaluation.needs-work { border-color: #ad7b34; background: #3a2e1a; color: #f2ce8c; }
 :root[data-theme="dark"] .evolution-result.incorrect { background: #382e1c; color: #f0ce90; }
 :root[data-theme="dark"] .evolution-result.phoenix-complete { background: linear-gradient(110deg, #352d1b, #3b231f); color: #ffd18c; }
 :root[data-theme="dark"] .test-progress-ledger,

@@ -20,7 +20,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const { t } = useTranslation();
-  const testActive = pathname.startsWith("/test") || pathname.startsWith("/upcoming-tests");
+  const testActive = pathname.startsWith("/test") || pathname.startsWith("/upcoming-tests") || pathname.startsWith("/sentence-practice");
   const vocabActive = pathname.startsWith("/vocab") || pathname.startsWith("/must-learn") || pathname.startsWith("/news");
   const featuredPlans = learningPlans.filter((plan) => plan.featured).slice(0, 6);
   const [primaryPlan, ...remainingFeaturedPlans] = featuredPlans;
@@ -58,6 +58,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
             </DropdownMenuTrigger>
             <DropdownMenuContent align="center" className="plan-dropdown">
               <DropdownMenuItem asChild><Link href="/test" className="plan-dropdown-item"><span><strong>{t("nav.startTest")}</strong></span><span aria-hidden="true">→</span></Link></DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/sentence-practice" className="plan-dropdown-item"><span><strong>{t("nav.sentencePractice")}</strong><small>{t("nav.sentencePracticeHint")}</small></span><span aria-hidden="true">→</span></Link></DropdownMenuItem>
               <DropdownMenuItem asChild><Link href="/upcoming-tests" className="plan-dropdown-item"><span><strong>{t("nav.upcomingTests")}</strong></span><span aria-hidden="true">→</span></Link></DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -137,6 +138,7 @@ export function AppNavigation({ user, learningPlans }: { user: User; learningPla
                 <summary className={testActive ? "active" : ""}><span>{t("nav.test")}</span><span aria-hidden="true">⌄</span></summary>
                 <div>
                   <Link href="/test" onClick={() => setMenuOpen(false)}><span><strong>{t("nav.startTest")}</strong></span><span aria-hidden="true">→</span></Link>
+                  <Link href="/sentence-practice" onClick={() => setMenuOpen(false)}><span><strong>{t("nav.sentencePractice")}</strong><small>{t("nav.sentencePracticeHint")}</small></span><span aria-hidden="true">→</span></Link>
                   <Link href="/upcoming-tests" onClick={() => setMenuOpen(false)}><span><strong>{t("nav.upcomingTests")}</strong></span><span aria-hidden="true">→</span></Link>
                 </div>
               </details>
