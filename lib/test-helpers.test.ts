@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getSpellingHint, getSpellingHintCharacters, getVerbEndingHint, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, makeWordTestQuestion, shuffled } from "./test-helpers.ts";
+import { getMissingVerbEnding, getSpellingHint, getSpellingHintCharacters, getVerbEndingHint, isWordAnswerCorrect, makeGapQuestion, makeGapSentence, makeWordTestQuestion, shuffled } from "./test-helpers.ts";
 
 test("supports multi-word targets in gap-fill tests", () => {
   assert.equal(makeGapSentence("I used to be very shy.", "used to be"), "I _____ very shy.");
@@ -22,6 +22,20 @@ test("identifies regular verb endings without flagging an unchanged root", () =>
   assert.equal(getVerbEndingHint("tried", "try"), "ed");
   assert.equal(getVerbEndingHint("pass", "pass"), null);
   assert.equal(getVerbEndingHint("went", "go"), null);
+  assert.equal(getVerbEndingHint("led", "lead"), null);
+});
+
+test("accepts only a missing regular s or ed ending", () => {
+  assert.equal(getMissingVerbEnding("use", "uses"), "s");
+  assert.equal(getMissingVerbEnding("study", "studies"), "s");
+  assert.equal(getMissingVerbEnding("breach", "breached"), "ed");
+  assert.equal(getMissingVerbEnding("try", "tried"), "ed");
+  assert.equal(getMissingVerbEnding("chicken out", "chickened out"), "ed");
+  assert.equal(getMissingVerbEnding("chicken in", "chickened out"), null);
+  assert.equal(getMissingVerbEnding("brech", "breached"), null);
+  assert.equal(getMissingVerbEnding("build in", "built in"), null);
+  assert.equal(getMissingVerbEnding("lead", "led"), null);
+  assert.equal(getMissingVerbEnding("go", "went"), null);
 });
 
 test("finds regular, irregular, and slash alternatives in phrasal-verb examples", () => {

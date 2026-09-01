@@ -49,11 +49,10 @@ const IRREGULAR_FORMS: Record<string, string[]> = {
   wake: ["woke", "woken"],
 };
 
-function isInflectedForm(candidate: string, root: string): boolean {
+function isRegularInflectedForm(candidate: string, root: string): boolean {
   const value = candidate.toLocaleLowerCase("en-US");
   const base = root.toLocaleLowerCase("en-US");
   if (value === base) return true;
-  if (IRREGULAR_FORMS[base]?.includes(value)) return true;
   if (INFLECTION_SUFFIXES.some((suffix) => value === `${base}${suffix}`)) return true;
   if (base.endsWith("e") && value === `${base.slice(0, -1)}ing`) return true;
   if (base.endsWith("y") && value === `${base.slice(0, -1)}ies`) return true;
@@ -62,13 +61,27 @@ function isInflectedForm(candidate: string, root: string): boolean {
   return Boolean(finalLetter && ["ed", "ing"].some((suffix) => value === `${base}${finalLetter}${suffix}`));
 }
 
+function isInflectedForm(candidate: string, root: string): boolean {
+  const value = candidate.toLocaleLowerCase("en-US");
+  const base = root.toLocaleLowerCase("en-US");
+  return Boolean(IRREGULAR_FORMS[base]?.includes(value)) || isRegularInflectedForm(value, base);
+}
+
 export function getVerbEndingHint(answer: string, root: string): "s" | "ed" | null {
   const answerVerb = normalizeAnswer(answer).split(" ")[0];
   const rootVerbs = normalizeAnswer(root).split(" ")[0].split("/");
   if (!answerVerb || rootVerbs.includes(answerVerb)) return null;
-  if (!rootVerbs.some((rootVerb) => isInflectedForm(answerVerb, rootVerb))) return null;
+  if (!rootVerbs.some((rootVerb) => isRegularInflectedForm(answerVerb, rootVerb))) return null;
   if (answerVerb.endsWith("ed")) return "ed";
   return answerVerb.endsWith("s") ? "s" : null;
+}
+
+export function getMissingVerbEnding(answer: string, correctAnswer: string): "s" | "ed" | null {
+  const answerParts = normalizeAnswer(answer).split(/\s+/).filter(Boolean);
+  const correctParts = normalizeAnswer(correctAnswer).split(/\s+/).filter(Boolean);
+  if (!answerParts.length || answerParts.length !== correctParts.length) return null;
+  if (answerParts.slice(1).some((part, index) => part !== correctParts[index + 1])) return null;
+  return getVerbEndingHint(correctParts[0], answerParts[0]);
 }
 
 export function makeGapQuestion(sentence: string, word: string): GapQuestion {

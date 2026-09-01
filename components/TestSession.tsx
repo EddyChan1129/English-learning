@@ -8,7 +8,7 @@ import { StageMascot } from "@/components/StageMascot";
 import { SpeechButton } from "@/components/SpeechButton";
 import { calculateTestUpdate } from "@/lib/spaced-repetition";
 import { playEvolutionSound } from "@/lib/evolution-sounds";
-import { getSpellingHintCharacters, getVerbEndingHint, isWordAnswerCorrect, makeWordTestQuestion } from "@/lib/test-helpers";
+import { getMissingVerbEnding, getSpellingHintCharacters, getVerbEndingHint, isWordAnswerCorrect, makeWordTestQuestion } from "@/lib/test-helpers";
 import type { Stage, WordDocument } from "@/types";
 
 type TestSessionProps = {
@@ -25,6 +25,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   const current = words[0];
   const [answer, setAnswer] = useState("");
   const [outcome, setOutcome] = useState<TestOutcome>(null);
+  const [acceptedEnding, setAcceptedEnding] = useState<"s" | "ed" | null>(null);
   const [hintVisible, setHintVisible] = useState(false);
   const [busy, setBusy] = useState(false);
   const stopEvolutionSound = useRef<(() => void) | null>(null);
@@ -36,10 +37,16 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
     if (!current) return { sentence: "", answer: "", sourceSentence: "", translation: "" };
     return makeWordTestQuestion(current);
   }, [current]);
+  const verbEndingHint = current && current.partsOfSpeech.some((part) => VERB_PARTS.has(part))
+    ? getVerbEndingHint(gapQuestion.answer, current.word)
+    : null;
 
   function check() {
     if (!current) return;
-    const passed = isWordAnswerCorrect(answer, gapQuestion.answer);
+    const missingEnding = getMissingVerbEnding(answer, gapQuestion.answer);
+    const accepted = verbEndingHint && missingEnding === verbEndingHint ? verbEndingHint : null;
+    const passed = isWordAnswerCorrect(answer, gapQuestion.answer) || accepted !== null;
+    setAcceptedEnding(accepted);
     setOutcome(passed ? "correct" : "incorrect");
     stopEvolutionSound.current?.();
     stopEvolutionSound.current = mode === "formal" && passed && current.stage < 3
@@ -76,9 +83,6 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   }
 
   const isStageOneTest = mode === "formal" && current.stage === 0;
-  const verbEndingHint = current.partsOfSpeech.some((part) => VERB_PARTS.has(part))
-    ? getVerbEndingHint(gapQuestion.answer, current.word)
-    : null;
   const resultStage = outcome === null || mode === "random"
     ? current.stage
     : calculateTestUpdate(current.stage, outcome === "correct", new Date(0).toISOString()).stage;
@@ -160,6 +164,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
             word={current.word}
             correctAnswer={gapQuestion.answer}
             answerSentence={gapQuestion.sourceSentence}
+            acceptedEnding={acceptedEnding}
             evolves={mode === "formal" && outcome === "correct" && resultStage !== current.stage}
             busy={busy}
             onSkipAnimation={() => stopEvolutionSound.current?.()}
@@ -171,7 +176,7 @@ export function TestSession({ words, mode, onResult, onSkip }: TestSessionProps)
   );
 }
 
-function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, answerSentence, evolves, busy, onSkipAnimation, onContinue }: {
+function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, answerSentence, acceptedEnding, evolves, busy, onSkipAnimation, onContinue }: {
   from: Stage;
   to: Stage;
   passed: boolean;
@@ -179,6 +184,7 @@ function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, 
   word: string;
   correctAnswer: string;
   answerSentence: string;
+  acceptedEnding: "s" | "ed" | null;
   evolves: boolean;
   busy: boolean;
   onSkipAnimation: () => void;
@@ -236,6 +242,9 @@ function StageEvolutionResult({ from, to, passed, skipped, word, correctAnswer, 
                   word: correctAnswer,
                   stage: t("common.stageName", { stage: from, label: t(`stages.${from}.label`) }),
                 })}</p>
+        {acceptedEnding ? (
+          <p className="grammar-hint">{t(`test.acceptedMissingEnding.${acceptedEnding}`, { word: correctAnswer })}</p>
+        ) : null}
         {!passed ? <SpeechButton text={answerSentence} language="en-US" label={t("test.listenCorrectAnswer")} /> : null}
       </div>
       <Button onClick={onContinue} disabled={busy}>{busy ? t("common.saving") : t("test.continue")}</Button>

@@ -365,6 +365,10 @@ const resources = {
                     s: "Grammar reminder: this sentence needs the third-person -s verb form.",
                     ed: "Grammar reminder: this sentence needs the past-tense -ed verb form.",
                 },
+                acceptedMissingEnding: {
+                    s: "Counted as correct. The complete answer is “{{word}}”; remember the -s ending.",
+                    ed: "Counted as correct. The complete answer is “{{word}}”; remember the -ed ending.",
+                },
                 listenCorrectAnswer: "Hear the full sentence",
                 currentEvolution: "Current evolution stage",
                 practiceStage: "Random practice · Stage unchanged",
@@ -936,6 +940,10 @@ const resources = {
                 verbEndingHint: {
                     s: "文法提示：呢句要用第三身單數動詞，記得加 -s。",
                     ed: "文法提示：呢句要用過去式動詞，記得 -ed 詞尾。",
+                },
+                acceptedMissingEnding: {
+                    s: "今次當答啱。完整答案係「{{word}}」；記得加 -s。",
+                    ed: "今次當答啱。完整答案係「{{word}}」；記得加 -ed。",
                 },
                 listenCorrectAnswer: "朗讀完整例句",
                 currentEvolution: "目前進化階段",
