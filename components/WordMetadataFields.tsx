@@ -1,0 +1,127 @@
+"use client";
+
+import { useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { PARTS_OF_SPEECH, type PartOfSpeech } from "@/types";
+
+const DEFAULT_PARTS_OF_SPEECH = PARTS_OF_SPEECH.slice(0, 5);
+
+type WordMetadataFieldsProps = {
+  selected: PartOfSpeech[];
+  languageName: string;
+  onSelectedChange: (parts: PartOfSpeech[]) => void;
+  children?: ReactNode;
+};
+
+export function WordMetadataFields({
+  selected,
+  languageName,
+  onSelectedChange,
+  children,
+}: WordMetadataFieldsProps) {
+  const { t } = useTranslation();
+  const [showAllParts, setShowAllParts] = useState(() =>
+    selected.some((part) => !DEFAULT_PARTS_OF_SPEECH.includes(part)),
+  );
+
+  function toggle(part: PartOfSpeech) {
+    onSelectedChange(selected.includes(part)
+      ? selected.filter((item) => item !== part)
+      : [...selected, part]);
+  }
+
+  return (
+    <div className="word-metadata-fields">
+      <fieldset>
+        <legend>
+          {t("add.partsOfSpeech", { language: languageName })}
+          <RequiredMark />
+        </legend>
+        <p>{t("add.partsOfSpeechHint")}</p>
+        <div className="part-of-speech-grid" role="group" aria-label={t("add.partsOfSpeech", { language: languageName })}>
+          {(showAllParts ? PARTS_OF_SPEECH : DEFAULT_PARTS_OF_SPEECH).map((part) => (
+            <Button
+              key={part}
+              type="button"
+              size="sm"
+              variant={selected.includes(part) ? "secondary" : "outline"}
+              aria-pressed={selected.includes(part)}
+              onClick={() => toggle(part)}
+              className="part-of-speech-option"
+            >
+              {t(`partsOfSpeech.${part}`)}
+            </Button>
+          ))}
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="link"
+          className="mt-2 px-0"
+          aria-expanded={showAllParts}
+          onClick={() => setShowAllParts((current) => !current)}
+        >
+          {t(showAllParts ? "add.showFewerPartsOfSpeech" : "add.showMorePartsOfSpeech")}
+          <span aria-hidden="true">{showAllParts ? "↑" : "↓"}</span>
+        </Button>
+      </fieldset>
+      {children}
+    </div>
+  );
+}
+
+export function AdvancedWordFields({ synonyms, onSynonymsChange, commonPhrases, onCommonPhrasesChange }: {
+  synonyms: string;
+  onSynonymsChange: (value: string) => void;
+  commonPhrases: string;
+  onCommonPhrasesChange: (value: string) => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <details className="advanced-word-fields">
+      <summary>
+        <span>{t("add.advanced")}</span>
+        <small>{t("add.advancedHint")}</small>
+      </summary>
+      <div className="advanced-word-fields-content">
+        <label className="block text-sm font-bold">
+          <span className="field-label-row">
+            <span>{t("add.synonyms")} <span className="font-normal text-[var(--muted)]">{t("add.commaSeparated")}</span></span>
+            <span className="optional-badge">{t("add.optional")}</span>
+          </span>
+          <input className="field mt-2" value={synonyms} onChange={(event) => onSynonymsChange(event.target.value)} placeholder={t("add.synonymsPlaceholder")} />
+        </label>
+        <CommonPhrasesField value={commonPhrases} onChange={onCommonPhrasesChange} />
+      </div>
+    </details>
+  );
+}
+
+export function RequiredMark() {
+  const { t } = useTranslation();
+  return <span className="required-mark" aria-label={t("common.required")} title={t("common.required")}>*</span>;
+}
+
+function CommonPhrasesField({ value, onChange }: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <label className="block text-sm font-bold">
+      <span className="field-label-row">
+        <span>{t("add.commonPhrases")} <span className="font-normal text-[var(--muted)]">{t("add.onePerLine")}</span></span>
+        <span className="optional-badge">{t("add.optional")}</span>
+      </span>
+      <small className="field-help">{t("add.commonPhrasesHint")}</small>
+      <textarea
+        className="field mt-2 min-h-24 resize-y"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={t("add.commonPhrasesPlaceholder")}
+      />
+    </label>
+  );
+}

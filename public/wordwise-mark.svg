@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">Wordwise</title>
+  <desc id="desc">An open vocabulary notebook forming the letter W</desc>
+  <rect x="3" y="3" width="58" height="58" rx="5" fill="#FFD84D" stroke="#14213D" stroke-width="3"/>
+  <path d="M12 17c8-2 14 0 20 5v29c-5-5-12-7-20-5V17Z" fill="#FFFFFF" stroke="#14213D" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M52 17c-8-2-14 0-20 5v29c5-5 12-7 20-5V17Z" fill="#F1EFFB" stroke="#14213D" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="m18 27 4 12 5-9 5 12 5-12 5 9 4-12" fill="none" stroke="#6F56C7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

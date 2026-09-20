@@ -1,0 +1,10 @@
+{
+  "title": "Daily news headline",
+  "summary": "One short summary for the news archive.",
+  "paragraphs": [
+    "Write the first plain-text paragraph here.",
+    "Write the next paragraph here."
+  ],
+  "sourceName": "Source name",
+  "sourceUrl": "https://example.com/source"
+}
